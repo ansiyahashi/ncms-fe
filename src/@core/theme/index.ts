@@ -38,10 +38,10 @@ const theme = (settings: Settings, mode: SystemMode, direction: Theme['direction
     typography: typography(inter.style.fontFamily),
     customShadows: customShadows(mode),
     mainColorChannels: {
-      light: '38 43 67',
-      dark: '234 234 255',
-      lightShadow: '38 43 67',
-      darkShadow: '16 17 33'
+      light: '0 0 0',
+      dark: '255 255 255',
+      lightShadow: '0 0 0',
+      darkShadow: '0 0 0'
     }
   } as Theme
 }
