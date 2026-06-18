@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -15,8 +15,8 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
-import { CircularProgress, FormHelperText, Checkbox, FormControlLabel } from '@mui/material'
-import { boolean, nonEmpty, object, pipe, string, email } from 'valibot'
+import { CircularProgress, FormHelperText, Checkbox, FormControlLabel, Divider, InputAdornment } from '@mui/material'
+import { boolean, nonEmpty, object, pipe, string, email, custom, minLength, forward, partialCheck } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
@@ -24,19 +24,51 @@ import { toast } from 'react-toastify'
 import { createBusiness, updateBusiness } from '@/libs/actions/business.action'
 import { validateError } from '@/api'
 
-const schema = object({
-  name: pipe(string(), nonEmpty('Business name is required')),
-  email: pipe(string(), nonEmpty('Business email is required'), email('Please enter a valid email address')),
-  plan: pipe(string(), nonEmpty('Subscription plan is required')),
-  contact: string(),
-  phone: string(),
-  address: string(),
-  business_type: string(),
-  industry: string(),
-  country: string(),
-  common_name: string(),
-  status: boolean()
-})
+const getSchema = (isEdit: boolean) => {
+  const baseSchema: any = {
+    name: pipe(string(), nonEmpty('Business name is required')),
+    email: pipe(string(), nonEmpty('Business email is required'), email('Please enter a valid email address')),
+    plan: pipe(string(), nonEmpty('Subscription plan is required')),
+    contact: string(),
+    phone: string(),
+    address: string(),
+    business_type: string(),
+    industry: string(),
+    country: string(),
+    common_name: string(),
+    status: boolean()
+  }
+
+  if (!isEdit) {
+    baseSchema.user_name = pipe(string(), nonEmpty('User name is required'))
+    baseSchema.user_email = pipe(
+      string(),
+      nonEmpty('Admin email is required'),
+      email('Please enter a valid email address')
+    )
+    baseSchema.password = pipe(
+      string(),
+      nonEmpty('Please enter password'),
+      minLength(8, 'Password must be at least 8 characters long'),
+      custom(
+        (value: any) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(value),
+        'Password must contain at least one lowercase, one uppercase, one number, and one special character'
+      )
+    )
+    baseSchema.confirm_password = pipe(string(), nonEmpty('Please confirm your password'))
+
+    const objSchema = object(baseSchema) as any
+    const checkFn = partialCheck(
+      [['password'], ['confirm_password']],
+      (input: any) => input.password === input.confirm_password,
+      'The two passwords do not match.'
+    ) as any
+    const forwardFn = forward(checkFn, ['confirm_password'] as any) as any
+    return pipe(objSchema, forwardFn) as any
+  }
+
+  return object(baseSchema) as any
+}
 
 const defaultValues = {
   name: '',
@@ -49,7 +81,11 @@ const defaultValues = {
   industry: '',
   country: '',
   common_name: '',
-  status: true
+  status: true,
+  user_name: '',
+  user_email: '',
+  password: '',
+  confirm_password: ''
 }
 
 interface BusinessFormDialogProps {
@@ -60,6 +96,14 @@ interface BusinessFormDialogProps {
 }
 
 const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFormDialogProps) => {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const handleTogglePassword = () => setShowPassword(prev => !prev)
+  const handleToggleConfirmPassword = () => setShowConfirmPassword(prev => !prev)
+
+  const isEdit = !!details?.id
+
   const {
     control,
     handleSubmit,
@@ -69,7 +113,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
   } = useForm({
     defaultValues,
     mode: 'onChange',
-    resolver: valibotResolver(schema)
+    resolver: valibotResolver(getSchema(isEdit))
   })
 
   useEffect(() => {
@@ -85,7 +129,11 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
         industry: details.industry || '',
         country: details.country || '',
         common_name: details.common_name || '',
-        status: details.status !== undefined ? details.status : true
+        status: details.status !== undefined ? details.status : true,
+        user_name: '',
+        user_email: '',
+        password: '',
+        confirm_password: ''
       })
     } else {
       reset(defaultValues)
@@ -292,12 +340,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                   name='country'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <TextField
-                      value={value}
-                      label='Country'
-                      onChange={onChange}
-                      placeholder='Country Location'
-                    />
+                    <TextField value={value} label='Country' onChange={onChange} placeholder='Country Location' />
                   )}
                 />
               </FormControl>
@@ -336,6 +379,136 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
             </Grid>
           </Grid>
         </DialogContent>
+        {!details?.id && (
+          <>
+            <Divider className='mlb-4' />
+            <DialogTitle variant='h4' className='text-center pbs-0'>
+              Admin Details
+              <Typography component='span' className='flex flex-col text-center text-textSecondary'>
+                Specify administrative credentials for the new business
+              </Typography>
+            </DialogTitle>
+
+            <DialogContent className='pbs-1 sm:pbe-6 sm:pli-16'>
+              <Grid container spacing={5}>
+                <Grid size={6}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='user_name'
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          value={value}
+                          label='Admin User Name'
+                          onChange={onChange}
+                          placeholder='Enter user name'
+                          error={Boolean(errors?.user_name)}
+                        />
+                      )}
+                    />
+                    {errors?.user_name && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.user_name.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid size={6}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='user_email'
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          value={value}
+                          label='Admin Email'
+                          onChange={onChange}
+                          placeholder='Enter email'
+                          error={Boolean(errors?.user_email)}
+                        />
+                      )}
+                    />
+                    {errors?.user_email && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.user_email.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid size={6}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='password'
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          fullWidth
+                          value={value}
+                          label='Password'
+                          onChange={onChange}
+                          type={showPassword ? 'text' : 'password'}
+                          error={Boolean(errors?.password)}
+                          slotProps={{
+                            input: {
+                              endAdornment: (
+                                <InputAdornment position='end'>
+                                  <IconButton
+                                    edge='end'
+                                    onClick={handleTogglePassword}
+                                    onMouseDown={e => e.preventDefault()}
+                                    aria-label='toggle password visibility'
+                                  >
+                                    <i className={showPassword ? 'ri-eye-line' : 'ri-eye-off-line'} />
+                                  </IconButton>
+                                </InputAdornment>
+                              )
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                    {errors?.password && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.password?.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid size={6}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='confirm_password'
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          fullWidth
+                          label='Confirm Password'
+                          onChange={onChange}
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={value}
+                          error={Boolean(errors?.confirm_password)}
+                          slotProps={{
+                            input: {
+                              endAdornment: (
+                                <InputAdornment position='end'>
+                                  <IconButton
+                                    edge='end'
+                                    onClick={handleToggleConfirmPassword}
+                                    onMouseDown={e => e.preventDefault()}
+                                    aria-label='toggle password visibility'
+                                  >
+                                    <i className={showConfirmPassword ? 'ri-eye-line' : 'ri-eye-off-line'} />
+                                  </IconButton>
+                                </InputAdornment>
+                              )
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                    {errors?.confirm_password && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.confirm_password?.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </>
+        )}
         <DialogActions className='sm:pli-16 sm:pbe-12'>
           <Button type='submit' variant='contained' color='primary' disabled={isSubmitting}>
             {isSubmitting && <CircularProgress size={20} className='mie-2' />}

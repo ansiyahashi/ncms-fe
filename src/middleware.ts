@@ -38,14 +38,19 @@ export default withAuth(
       return NextResponse.next()
     }
 
-    // Check the user is a super admin
-    if ((token as any)?.is_super_admin || (token as any)?.is_admin) {
+    const isSuperAdmin = (token as any)?.is_super_admin
+    const isAdmin = (token as any)?.is_admin
+    const roleId = (token as any)?.role_id
+    const userPermissions = (token as any)?.rolePermissions || []
+
+    const isBusinessAdmin = isAdmin && (!roleId || userPermissions.length === 0)
+
+    if (isSuperAdmin || isBusinessAdmin) {
       return NextResponse.next()
     }
 
     // Check user has required permission
-    const userPermission = (token as any)?.rolePermissions
-    const hasPermission = userPermission?.includes(path?.permission)
+    const hasPermission = userPermissions?.includes(path?.permission)
 
     if (!hasPermission) {
       return NextResponse.redirect(new URL('/access-denied', req.url))

@@ -28,6 +28,9 @@ export function useDataTable<T>({
     pageSize: 10,
     pageIndex: 1
   },
+  manualPagination = true,
+  manualSorting = false,
+  manualFiltering = false,
   rowSelection: externalRowSelection,
   onRowSelectionChange: onExternalRowSelectionChange,
   ...props
@@ -35,6 +38,9 @@ export function useDataTable<T>({
   data: T[]
   columns: ColumnDef<T>[]
   pagination?: { pageSize: number; pageIndex: number }
+  manualPagination?: boolean
+  manualSorting?: boolean
+  manualFiltering?: boolean
   rowSelection?: any
   onRowSelectionChange?: any
 }) {
@@ -46,27 +52,30 @@ export function useDataTable<T>({
     onExternalRowSelectionChange !== undefined ? onExternalRowSelectionChange : setInternalRowSelection
 
   const table = useReactTable({
-    ...props,
     filterFns: {
       fuzzy: simpleFilter as any
     },
-    state: {
-      rowSelection,
-      pagination
-    },
-    manualPagination: true,
+    manualPagination,
+    manualSorting,
+    manualFiltering,
     enableRowSelection: true,
     globalFilterFn: simpleFilter as any,
     onRowSelectionChange: onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(manualFiltering ? {} : { getFilteredRowModel: getFilteredRowModel() }),
+    ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
+    ...(manualPagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     defaultColumn: {
       maxSize: 100
+    },
+    ...props,
+    state: {
+      rowSelection,
+      ...props?.state,
+      pagination
     }
   })
 

@@ -155,3 +155,17 @@ export async function deleteRole(variables: any, path?: string) {
     errors: res?.errors || { message: 'Failed to delete role' }
   }
 }
+
+export async function getSingleRole(id: string) {
+  const res = await getRequest(`/roles/${id}`)
+
+  if (res?.data) {
+    return {
+      data: formatRole(res.data)
+    }
+  }
+
+  return {
+    errors: res?.errors || { message: 'Failed to fetch role' }
+  }
+}

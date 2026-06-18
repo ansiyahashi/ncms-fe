@@ -93,7 +93,10 @@ export async function createBusiness(
     country: variables?.businessData?.country,
     logo: variables?.businessData?.logo,
     common_name: variables?.businessData?.common_name,
-    is_active: variables?.businessData?.status !== undefined ? variables.businessData.status : true
+    is_active: variables?.businessData?.status !== undefined ? variables.businessData.status : true,
+    user_name: variables?.businessData?.user_name,
+    user_email: variables?.businessData?.user_email,
+    password: variables?.businessData?.password
   }
 
   const res = await postServerRequest('/businesses', {

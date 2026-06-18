@@ -5,15 +5,18 @@ import { useSession } from 'next-auth/react'
 export const useCheckUserPermission = () => {
   const { data: session } = useSession()
 
-  const isSuperAdmin = session?.user?.is_super_admin
-  const isAdmin = session?.user?.is_admin
+  const isSuperAdmin = (session?.user as any)?.is_super_admin
+  const isAdmin = (session?.user as any)?.is_admin
+  const roleId = (session?.user as any)?.role_id
 
   const permissions = useMemo(() => {
-    return session?.user?.rolePermissions || []
+    return (session?.user as any)?.rolePermissions || []
   }, [session])
 
   const hasPermission = useMemo(() => {
-    if (isSuperAdmin || isAdmin) {
+    const isBusinessAdmin = isAdmin && (!roleId || permissions.length === 0)
+
+    if (isSuperAdmin || isBusinessAdmin) {
       return () => true
     }
 
@@ -22,7 +25,7 @@ export const useCheckUserPermission = () => {
 
       return permissions.includes(code)
     }
-  }, [isSuperAdmin, isAdmin, permissions])
+  }, [isSuperAdmin, isAdmin, roleId, permissions])
 
   return hasPermission
 }
