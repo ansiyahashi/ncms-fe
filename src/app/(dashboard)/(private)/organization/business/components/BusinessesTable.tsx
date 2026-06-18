@@ -2,11 +2,15 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
+import { useRouter } from 'next/navigation'
+
+import { useSession } from 'next-auth/react'
+
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { IconButton, Chip, Switch } from '@mui/material'
+import { IconButton, Chip, Switch, Tooltip } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
@@ -42,9 +46,26 @@ const BusinessesTable = ({
   pageCount,
   loading
 }: BusinessesTableProps) => {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const isSuperAdmin = session?.user?.is_super_admin
+
   const [data, setData] = useState(initialData)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [openDialog, setOpenDialog] = useState(false)
+  const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      if (typeof document === 'undefined') return null
+      const value = `; ${document.cookie}`
+      const parts = value.split(`; ${name}=`)
+
+      if (parts.length === 2) return parts.pop()?.split(';').shift()
+    }
+
+    setActiveBusinessId(getCookie('selectedBusinessId') || null)
+  }, [])
 
   useEffect(() => {
     setData(initialData)
@@ -128,25 +149,17 @@ const BusinessesTable = ({
         cell: ({ row }) => {
           const plan = row?.original?.plan
           let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'info'
+
           if (plan === 'pro') color = 'primary'
           if (plan === 'enterprise') color = 'success'
-          
-          return (
-            <Chip
-              variant='tonal'
-              label={plan ? plan.toUpperCase() : 'FREE'}
-              size='small'
-              color={color}
-            />
-          )
+
+          return <Chip variant='tonal' label={plan ? plan.toUpperCase() : 'FREE'} size='small' color={color} />
         }
       }),
       columnHelper.accessor('industry', {
         header: 'Industry / Type',
         cell: ({ row }) => (
-          <Typography variant='body2'>
-            {row?.original?.industry || row?.original?.business_type || 'N/A'}
-          </Typography>
+          <Typography variant='body2'>{row?.original?.industry || row?.original?.business_type || 'N/A'}</Typography>
         )
       }),
       columnHelper.accessor('status', {
@@ -173,6 +186,25 @@ const BusinessesTable = ({
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center gap-0.5'>
+            {isSuperAdmin && (
+              <Tooltip title={activeBusinessId === row?.original?.id ? 'Active Context' : 'Set as Active Context'}>
+                <IconButton
+                  size='small'
+                  onClick={() => {
+                    const bId = row?.original?.id
+
+                    document.cookie = `selectedBusinessId=${bId}; path=/; max-age=31536000`
+                    setActiveBusinessId(bId)
+                    toast.success(`Active business context set to: ${row?.original?.name}`)
+                    router.refresh()
+                  }}
+                  color={activeBusinessId === row?.original?.id ? 'warning' : 'default'}
+                >
+                  <i className={activeBusinessId === row?.original?.id ? 'ri-star-fill' : 'ri-star-line'} />
+                </IconButton>
+              </Tooltip>
+            )}
+
             <RoleGuard allowedPermissions={[PERMISSIONS.BUSINESS_DELETE]}>
               <IconButton size='small' onClick={() => onDeleteBusiness(row?.original?.id)} color='error'>
                 <i className='ri-delete-bin-7-line text-textSecondary' />
@@ -189,7 +221,7 @@ const BusinessesTable = ({
         enableSorting: false
       })
     ],
-    [onDeleteBusiness, handleStatusChange, onEditItem]
+    [onDeleteBusiness, handleStatusChange, onEditItem, isSuperAdmin, activeBusinessId, router]
   )
 
   const onDataChange = useCallback((data: any) => {

@@ -26,6 +26,20 @@ export async function getRequest<T = any>(url: string): Promise<ApiResponse<T>> 
     requestHeaders['Authorization'] = `Bearer ${token}`
   }
 
+  if (session?.user?.is_super_admin && typeof window === 'undefined') {
+    try {
+      const { cookies } = require('next/headers')
+      const cookieStore = await cookies()
+      const selectedBId = cookieStore.get('selectedBusinessId')?.value
+      if (selectedBId) {
+        const separator = url.includes('?') ? '&' : '?'
+        url = `${url}${separator}bId=${selectedBId}`
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   try {
     const res = await fetch(`${getApiUrl()}${url.startsWith('/') ? url : `/${url}`}`, {
       method: 'GET',
@@ -66,6 +80,20 @@ export async function postRequest<T = any>(url: string, body: any): Promise<ApiR
 
   if (token) {
     requestHeaders['Authorization'] = `Bearer ${token}`
+  }
+
+  if (session?.user?.is_super_admin && typeof window === 'undefined') {
+    try {
+      const { cookies } = require('next/headers')
+      const cookieStore = await cookies()
+      const selectedBId = cookieStore.get('selectedBusinessId')?.value
+      if (selectedBId) {
+        const separator = url.includes('?') ? '&' : '?'
+        url = `${url}${separator}bId=${selectedBId}`
+      }
+    } catch (e) {
+      // Ignore
+    }
   }
 
   try {

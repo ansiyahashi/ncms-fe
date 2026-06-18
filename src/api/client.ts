@@ -25,6 +25,20 @@ export async function postServerRequest<T = any>(
     token = `Bearer ${token}`
   }
 
+  if (session?.user?.is_super_admin && typeof window === 'undefined') {
+    try {
+      const { cookies } = require('next/headers')
+      const cookieStore = await cookies()
+      const selectedBId = cookieStore.get('selectedBusinessId')?.value
+      if (selectedBId) {
+        const separator = url.includes('?') ? '&' : '?'
+        url = `${url}${separator}bId=${selectedBId}`
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: token } : {}),
