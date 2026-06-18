@@ -31,8 +31,8 @@ import Logo from '@components/layout/shared/Logo'
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 
-import { resetPassword } from '@/libs/api/auth/auth.action'
-import { validateError } from '@/libs/api'
+import { resetPassword } from '@/libs/actions/auth.action'
+import { validateError } from '@/api'
 
 const schema = pipe(
   object({

@@ -146,7 +146,7 @@ const LoginV2 = ({ mode }: { mode: Mode }) => {
         </Link>
         <div className='flex flex-col gap-5 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
           <div>
-            <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋px`}</Typography>
+            <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋`}</Typography>
             <Typography className='mbs-1'>Please sign-in to your account and start the adventure</Typography>
           </div>
           <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>

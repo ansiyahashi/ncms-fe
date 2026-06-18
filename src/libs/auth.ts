@@ -2,7 +2,7 @@ import CredentialProvider from 'next-auth/providers/credentials'
 
 import type { NextAuthOptions } from 'next-auth'
 
-import { login } from './api/auth/auth.action'
+import { login } from './actions/auth.action'
 
 export const authOptions: NextAuthOptions = {
   providers: [
