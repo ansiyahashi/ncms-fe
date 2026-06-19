@@ -1,4 +1,5 @@
 import { PERMISSIONS } from '@/libs/paths'
+
 // Type Imports
 import type { HorizontalMenuDataType } from '@/types/menuTypes'
 
@@ -8,12 +9,13 @@ const horizontalMenuData = (): HorizontalMenuDataType[] => [
     href: '/home',
     icon: 'ri-home-smile-line'
   },
-  {
-    label: 'Dashboard',
-    href: '/dashboard/reports',
-    icon: 'ri-bar-chart-2-line',
-    permission: PERMISSIONS.REPORTS
-  },
+
+  // {
+  //   label: 'Dashboard',
+  //   href: '/dashboard/reports',
+  //   icon: 'ri-bar-chart-2-line',
+  //   permission: PERMISSIONS.REPORTS
+  // },
   {
     label: 'Access Control',
     icon: 'ri-shield-keyhole-line',
@@ -26,7 +28,7 @@ const horizontalMenuData = (): HorizontalMenuDataType[] => [
       },
       {
         label: 'Users',
-        href: '/admin-users',
+        href: '/users',
         icon: 'ri-user-line',
         permission: PERMISSIONS.USER
       },
@@ -85,62 +87,62 @@ const horizontalMenuData = (): HorizontalMenuDataType[] => [
         permission: PERMISSIONS.LOCATION
       }
     ]
-  },
-  {
-    label: 'Assets & PM',
-    icon: 'ri-tools-line',
-    children: [
-      {
-        label: 'Asset Registry',
-        href: '/assets/registry',
-        icon: 'ri-tools-line',
-        permission: PERMISSIONS.ASSET
-      },
-      {
-        label: 'PM Schedules',
-        href: '/maintenance/schedules',
-        icon: 'ri-calendar-todo-line',
-        permission: PERMISSIONS.MAINTENANCE
-      },
-      {
-        label: 'Work Orders',
-        href: '/work-orders',
-        icon: 'ri-task-line',
-        permission: PERMISSIONS.WORK_ORDER
-      }
-    ]
-  },
-  {
-    label: 'Commercials & Logs',
-    icon: 'ri-home-8-line',
-    children: [
-      {
-        label: 'Property Leases',
-        href: '/property/leases',
-        icon: 'ri-home-8-line',
-        permission: PERMISSIONS.PROPERTY
-      },
-      {
-        label: 'Utility Readings',
-        href: '/utilities/readings',
-        icon: 'ri-water-flash-line',
-        permission: PERMISSIONS.UTILITY
-      },
-      {
-        label: 'Financial Costs',
-        href: '/financial/costs',
-        icon: 'ri-money-dollar-circle-line',
-        permission: PERMISSIONS.FINANCIAL
-      },
-      {
-        label: 'Inventory & Stock',
-        href: '/inventory/stock',
-        icon: 'ri-archive-line',
-        permission: PERMISSIONS.INVENTORY
-      }
-    ]
   }
+
+  // {
+  //   label: 'Assets & PM',
+  //   icon: 'ri-tools-line',
+  //   children: [
+  //     {
+  //       label: 'Asset Registry',
+  //       href: '/assets/registry',
+  //       icon: 'ri-tools-line',
+  //       permission: PERMISSIONS.ASSET
+  //     },
+  //     {
+  //       label: 'PM Schedules',
+  //       href: '/maintenance/schedules',
+  //       icon: 'ri-calendar-todo-line',
+  //       permission: PERMISSIONS.MAINTENANCE
+  //     },
+  //     {
+  //       label: 'Work Orders',
+  //       href: '/work-orders',
+  //       icon: 'ri-task-line',
+  //       permission: PERMISSIONS.WORK_ORDER
+  //     }
+  //   ]
+  // },
+  // {
+  //   label: 'Commercials & Logs',
+  //   icon: 'ri-home-8-line',
+  //   children: [
+  //     {
+  //       label: 'Property Leases',
+  //       href: '/property/leases',
+  //       icon: 'ri-home-8-line',
+  //       permission: PERMISSIONS.PROPERTY
+  //     },
+  //     {
+  //       label: 'Utility Readings',
+  //       href: '/utilities/readings',
+  //       icon: 'ri-water-flash-line',
+  //       permission: PERMISSIONS.UTILITY
+  //     },
+  //     {
+  //       label: 'Financial Costs',
+  //       href: '/financial/costs',
+  //       icon: 'ri-money-dollar-circle-line',
+  //       permission: PERMISSIONS.FINANCIAL
+  //     },
+  //     {
+  //       label: 'Inventory & Stock',
+  //       href: '/inventory/stock',
+  //       icon: 'ri-archive-line',
+  //       permission: PERMISSIONS.INVENTORY
+  //     }
+  //   ]
+  // }
 ]
 
 export default horizontalMenuData
-

@@ -2,11 +2,18 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
+import { useSession } from 'next-auth/react'
+import { useSearchParams, useRouter } from 'next/navigation'
+
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import { IconButton, Chip, Switch } from '@mui/material'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
@@ -17,14 +24,15 @@ import RoleGuard from '@components/RoleGuard'
 import { addOrUpdateItem } from '@/utils/helper-functions/addOrUpdateItem'
 import { validateError } from '@/api'
 import { PERMISSIONS } from '@/libs/paths'
+import { formUrlQuery, removeKeysFromQuery } from '@/utils/helper-functions/searchHelpers'
 
-import { deleteAdminUser, updateAdmin } from '@/libs/actions/adminUser.action'
-import AdminUsersFormDialog from './AdminUsersFormDialog'
+import { deleteUser, updateUser } from '../api/user.action'
+import UsersFormDialog from './UsersFormDialog'
 import UpdatePasswordDialog from './UpdatePasswordDialog'
 
 const columnHelper = createColumnHelper<any>()
 
-interface AdminUsersTableProps {
+interface UsersTableProps {
   initialData: any[]
   initialPagination: {
     totalData: number
@@ -35,16 +43,23 @@ interface AdminUsersTableProps {
   pageCount: number
   loading: boolean
   rolesData?: any[]
+  businessesData?: any[]
 }
 
-const AdminUsersTable = ({
+const UsersTable = ({
   initialData,
   initialPagination,
   perPageCount,
   pageCount,
   loading,
-  rolesData = []
-}: AdminUsersTableProps) => {
+  rolesData = [],
+  businessesData = []
+}: UsersTableProps) => {
+  const { data: session } = useSession()
+  const isSuperAdmin = session?.user?.is_super_admin
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [data, setData] = useState(initialData)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [openDialog, setOpenDialog] = useState(false)
@@ -52,17 +67,56 @@ const AdminUsersTable = ({
   const [passwordResetUserId, setPasswordResetUserId] = useState('')
   const [passwordResetUserName, setPasswordResetUserName] = useState('')
 
+  const currentRoleId = searchParams.get('role_id') || ''
+  const currentBId = searchParams.get('b_id') || ''
+
   useEffect(() => {
     setData(initialData)
   }, [initialData])
 
+  const handleRoleChange = useCallback((roleId: string) => {
+    let newUrl = ''
+    if (roleId) {
+      newUrl = formUrlQuery({
+        params: searchParams.toString(),
+        key: 'role_id',
+        value: roleId,
+        keysToRemove: ['page']
+      })
+    } else {
+      newUrl = removeKeysFromQuery({
+        params: searchParams.toString(),
+        keysToRemove: ['role_id', 'page']
+      })
+    }
+    router.push(newUrl, { scroll: false })
+  }, [searchParams, router])
+
+  const handleBusinessChange = useCallback((bId: string) => {
+    let newUrl = ''
+    if (bId) {
+      newUrl = formUrlQuery({
+        params: searchParams.toString(),
+        key: 'b_id',
+        value: bId,
+        keysToRemove: ['page', 'role_id']
+      })
+    } else {
+      newUrl = removeKeysFromQuery({
+        params: searchParams.toString(),
+        keysToRemove: ['b_id', 'page', 'role_id']
+      })
+    }
+    router.push(newUrl, { scroll: false })
+  }, [searchParams, router])
+
   const onDeleteUser = useCallback(async (userId: string) => {
     try {
-      const { data: responseData, errors } = await deleteAdminUser({ id: userId }, '/admin-users')
+      const { data: responseData, errors } = await deleteUser({ id: userId }, '/users')
 
-      if (responseData?.deleteAdminUser) {
+      if (responseData?.deleteUser) {
         toast.success('User deleted successfully!')
-        setData(prev => prev.filter(user => user?.id !== responseData?.deleteAdminUser?.id))
+        setData(prev => prev.filter(user => user?.id !== responseData?.deleteUser?.id))
       }
 
       validateError(errors)
@@ -75,17 +129,17 @@ const AdminUsersTable = ({
     const updatedStatus = !user?.status
 
     try {
-      const { data: responseData, errors } = await updateAdmin(
+      const { data: responseData, errors } = await updateUser(
         {
-          adminData: {
+          userData: {
             id: user?.id,
             status: updatedStatus
           }
         },
-        '/admin-users'
+        '/users'
       )
 
-      if (responseData?.updateAdmin) {
+      if (responseData?.updateUser) {
         toast.success(`Status successfully updated for ${user?.name || 'N/A'}`)
         addOrUpdateItem(setData, { ...user, status: updatedStatus }, 'id')
       }
@@ -180,7 +234,48 @@ const AdminUsersTable = ({
     <>
       <Card>
         <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
-          <LocalSearchbar route={'/admin-users'} placeholder='Search' className='max-sm:is-full' />
+          <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
+            <LocalSearchbar route={'/users'} placeholder='Search' className='max-sm:is-full sm:min-is-[220px]' />
+            
+            {isSuperAdmin && (
+              <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }}>
+                <InputLabel id='business-filter-select-label'>Business</InputLabel>
+                <Select
+                  labelId='business-filter-select-label'
+                  id='business-filter-select'
+                  value={currentBId}
+                  label='Business'
+                  onChange={e => handleBusinessChange(e.target.value as string)}
+                >
+                  <MenuItem value=''>All Businesses</MenuItem>
+                  {businessesData.map((business: any) => (
+                    <MenuItem key={business.id} value={business.id}>
+                      {business.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }}>
+              <InputLabel id='role-filter-select-label'>Role</InputLabel>
+              <Select
+                labelId='role-filter-select-label'
+                id='role-filter-select'
+                value={currentRoleId}
+                label='Role'
+                onChange={e => handleRoleChange(e.target.value as string)}
+              >
+                <MenuItem value=''>All Roles</MenuItem>
+                {rolesData.map((role: any) => (
+                  <MenuItem key={role.id} value={role.id}>
+                    {role.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+
           <RoleGuard allowedPermissions={[PERMISSIONS.USER_CREATE]}>
             <div className='flex gap-4 max-sm:flex-col max-sm:is-full'>
               <OpenDialogOnElementClick
@@ -192,10 +287,12 @@ const AdminUsersTable = ({
                   startIcon: <i className='ri-add-line' />,
                   children: 'Add Users'
                 }}
-                dialog={AdminUsersFormDialog}
+                dialog={UsersFormDialog}
                 dialogProps={{
                   onDataChange: onDataChange,
-                  roles: rolesData
+                  roles: rolesData,
+                  businesses: businessesData,
+                  currentBId: currentBId
                 }}
               />
             </div>
@@ -210,12 +307,14 @@ const AdminUsersTable = ({
           loading={loading}
         />
       </Card>
-      <AdminUsersFormDialog
+      <UsersFormDialog
         open={openDialog}
         setOpen={setOpenDialog}
         details={selectedItem}
         onDataChange={onDataChange}
         roles={rolesData}
+        businesses={businessesData}
+        currentBId={currentBId}
       />
       <UpdatePasswordDialog
         open={passwordResetOpen}
@@ -227,4 +326,4 @@ const AdminUsersTable = ({
   )
 }
 
-export default AdminUsersTable
+export default UsersTable

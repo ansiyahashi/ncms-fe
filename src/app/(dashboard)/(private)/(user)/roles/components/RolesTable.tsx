@@ -2,25 +2,27 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
-import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { IconButton, Chip, Switch } from '@mui/material'
+import { IconButton, Chip, Switch, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
 import { format } from 'date-fns'
 
 import LocalSearchbar from '@components/common/LocalSearchbar'
-import { deleteRole, updateRole } from '@/libs/actions/role.action'
+import { deleteRole, updateRole } from '../api/role.action'
 import { addOrUpdateItem } from '@/utils/helper-functions/addOrUpdateItem'
 import DataTable from '@components/data-table/DataTable'
 import { PERMISSIONS } from '@/libs/paths'
 import RoleGuard from '@components/RoleGuard'
 import { validateError } from '@/api'
+import { formUrlQuery, removeKeysFromQuery } from '@/utils/helper-functions/searchHelpers'
 
 const columnHelper = createColumnHelper<any>()
 
@@ -35,6 +37,7 @@ interface RolesTableProps {
   pageCount: number
   loading: boolean
   permissionData?: any[]
+  businessesData?: any[]
 }
 
 const RolesTable = ({
@@ -43,14 +46,39 @@ const RolesTable = ({
   perPageCount,
   pageCount,
   loading,
-  permissionData = []
+  permissionData = [],
+  businessesData = []
 }: RolesTableProps) => {
+  const { data: session } = useSession()
+  const isSuperAdmin = session?.user?.is_super_admin || false
   const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [data, setData] = useState(initialData)
+
+  const currentBId = searchParams.get('b_id') || ''
 
   useEffect(() => {
     setData(initialData)
   }, [initialData])
+
+  const handleBusinessChange = useCallback((bId: string) => {
+    let newUrl = ''
+    if (bId) {
+      newUrl = formUrlQuery({
+        params: searchParams.toString(),
+        key: 'b_id',
+        value: bId,
+        keysToRemove: ['page']
+      })
+    } else {
+      newUrl = removeKeysFromQuery({
+        params: searchParams.toString(),
+        keysToRemove: ['b_id', 'page']
+      })
+    }
+    router.push(newUrl, { scroll: false })
+  }, [searchParams, router])
 
   const onDeleteRole = useCallback(async (roleId: string) => {
     try {
@@ -110,23 +138,6 @@ const RolesTable = ({
         )
       }),
 
-      // columnHelper.accessor('adminUserCount', {
-      //   header: 'Admin Users',
-      //   cell: ({ row }) => <Typography>{row?.original?.adminUserCount || 0}</Typography>
-      // }),
-      // columnHelper.accessor('role_permissions', {
-      //   header: 'Permissions',
-      //   cell: ({ row }) => {
-      //     const permissions = row?.original?.role_permissions || []
-
-      //     const permissionNames = permissions
-      //       .map((rp: any) => rp?.permission?.name)
-      //       .filter(Boolean)
-      //       .join(', ')
-
-      //     return <Typography className='text-wrap'>{permissionNames || 'No Permissions'}</Typography>
-      //   }
-      // }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => (
@@ -189,7 +200,29 @@ const RolesTable = ({
     <>
       <Card>
         <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
-          <LocalSearchbar route={'/roles'} placeholder='Search' className='max-sm:is-full' />
+          <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
+            <LocalSearchbar route={'/roles'} placeholder='Search' className='max-sm:is-full sm:min-is-[220px]' />
+            
+            {isSuperAdmin && (
+              <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }}>
+                <InputLabel id='business-filter-select-label'>Business</InputLabel>
+                <Select
+                  labelId='business-filter-select-label'
+                  id='business-filter-select'
+                  value={currentBId}
+                  label='Business'
+                  onChange={e => handleBusinessChange(e.target.value as string)}
+                >
+                  <MenuItem value=''>All Businesses</MenuItem>
+                  {businessesData.map((business: any) => (
+                    <MenuItem key={business.id} value={business.id}>
+                      {business.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </div>
           <RoleGuard allowedPermissions={[PERMISSIONS.ROLE_CREATE]}>
             <div className='flex gap-4 max-sm:flex-col max-sm:is-full'>
               <Button

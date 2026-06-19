@@ -11,6 +11,7 @@ function formatRole(role: any) {
     name: role.name,
     description: role.description,
     status: role.is_active,
+    b_id: role.b_id?._id || role.b_id,
     created_at: role.created_at,
     role_permissions:
       role.role_permissions ||
@@ -29,8 +30,12 @@ export async function getAllRoles(variables: any) {
   const search = variables?.search || ''
   const limit = variables?.size || 10
   const page = variables?.page || 1
+  const b_id = variables?.b_id || ''
 
-  const res = await getRequest(`/roles?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`)
+  let url = `/roles?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`
+  if (b_id) url += `&b_id=${encodeURIComponent(b_id)}`
+
+  const res = await getRequest(url)
 
   if (res?.data) {
     const mapped = Array.isArray(res.data) ? res.data.map((r: any) => formatRole(r)) : []

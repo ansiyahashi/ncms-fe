@@ -28,7 +28,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
 
-import { createRole, updateRole, deleteRole } from '@/libs/actions/role.action'
+import { createRole, updateRole, deleteRole } from '../api/role.action'
 import { validateError } from '@/api'
 
 const schema = object({

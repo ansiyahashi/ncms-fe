@@ -1,7 +1,9 @@
 import { getSession, signOut } from 'next-auth/react'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/libs/auth'
+
 import { toast } from 'react-toastify'
+
+import { authOptions } from '@/libs/auth'
 
 const getApiUrl = () => {
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
@@ -24,20 +26,6 @@ export async function getRequest<T = any>(url: string): Promise<ApiResponse<T>> 
 
   if (token) {
     requestHeaders['Authorization'] = `Bearer ${token}`
-  }
-
-  if (session?.user?.is_super_admin && typeof window === 'undefined') {
-    try {
-      const { cookies } = require('next/headers')
-      const cookieStore = await cookies()
-      const selectedBId = cookieStore.get('selectedBusinessId')?.value
-      if (selectedBId) {
-        const separator = url.includes('?') ? '&' : '?'
-        url = `${url}${separator}bId=${selectedBId}`
-      }
-    } catch (e) {
-      // Ignore
-    }
   }
 
   try {
@@ -80,20 +68,6 @@ export async function postRequest<T = any>(url: string, body: any): Promise<ApiR
 
   if (token) {
     requestHeaders['Authorization'] = `Bearer ${token}`
-  }
-
-  if (session?.user?.is_super_admin && typeof window === 'undefined') {
-    try {
-      const { cookies } = require('next/headers')
-      const cookieStore = await cookies()
-      const selectedBId = cookieStore.get('selectedBusinessId')?.value
-      if (selectedBId) {
-        const separator = url.includes('?') ? '&' : '?'
-        url = `${url}${separator}bId=${selectedBId}`
-      }
-    } catch (e) {
-      // Ignore
-    }
   }
 
   try {
@@ -154,6 +128,7 @@ export async function getClientRequest<T = any>(url: string, options: any = {}):
       if (response.status === 401) {
         signOut()
       }
+
       return {
         status: response.status,
         errors: body
@@ -202,6 +177,7 @@ export async function postClientRequest<T = any>(url: string, body: any, options
       if (response.status === 401) {
         signOut()
       }
+
       return {
         status: response.status,
         errors: resBody

@@ -1,6 +1,6 @@
 import React from 'react'
 import { getAllPermissions } from '@/libs/actions/permissions.action'
-import { getSingleRole } from '@/libs/actions/role.action'
+import { getSingleRole } from '../../api/role.action'
 import RolesForm from '../../components/RolesForm'
 
 interface RoleEditPageProps {

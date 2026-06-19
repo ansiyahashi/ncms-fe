@@ -18,7 +18,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
 
-import { updateAdminPassword } from '@/libs/actions/adminUser.action'
+import { updateUserPassword } from '../api/user.action'
 import { validateError } from '@/api'
 
 const schema = pipe(
@@ -70,9 +70,9 @@ const UpdatePasswordDialog = ({ open, setOpen, userId, userName }: UpdatePasswor
 
   const onSubmit = async (params: any) => {
     try {
-      const { data, errors: responseErrors } = await updateAdminPassword(userId, params.password, '/admin-users')
+      const { data, errors: responseErrors } = await updateUserPassword(userId, params.password, '/users')
 
-      if (data?.updateAdminPassword) {
+      if (data?.updateUserPassword) {
         toast.success('Successfully updated password.')
         handleClose()
       }

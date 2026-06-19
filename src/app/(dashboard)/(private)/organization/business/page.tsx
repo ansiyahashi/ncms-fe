@@ -1,4 +1,4 @@
-import { getAllBusinesses } from '@/libs/actions/business.action'
+import { getAllBusinesses } from './api/business.action'
 import BusinessesTable from './components/BusinessesTable'
 import type { PageProps } from '@/types/pageTypes'
 

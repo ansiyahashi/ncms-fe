@@ -147,11 +147,11 @@ export const ROUTE_PERMISSIONS = [
   { path: '/home', permission: '' },
 
   // Users & Access Control
-  { path: '/admin-users', permission: PERMISSIONS.USER },
-  { path: '/admin-users/add', permission: PERMISSIONS.USER_CREATE },
-  { path: '/admin-users/[id]', permission: PERMISSIONS.USER_VIEW },
-  { path: '/admin-users/[id]/edit', permission: PERMISSIONS.USER_EDIT },
-  { path: '/admin-users/delete', permission: PERMISSIONS.USER_DELETE },
+  { path: '/users', permission: PERMISSIONS.USER },
+  { path: '/users/add', permission: PERMISSIONS.USER_CREATE },
+  { path: '/users/[id]', permission: PERMISSIONS.USER_VIEW },
+  { path: '/users/[id]/edit', permission: PERMISSIONS.USER_EDIT },
+  { path: '/users/delete', permission: PERMISSIONS.USER_DELETE },
 
   { path: '/permission', permission: PERMISSIONS.PERMISSION },
   { path: '/permission/add', permission: PERMISSIONS.PERMISSION_CREATE },

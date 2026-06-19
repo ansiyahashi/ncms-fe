@@ -23,17 +23,24 @@ function formatUser(user: any) {
     dep_id: user.dep_id?._id || user.dep_id,
     des_id: user.des_id?._id || user.des_id,
     is_admin: user.is_admin || false,
+    b_id: user.b_id?._id || user.b_id,
     branches: user.branches || [],
     locations: user.locations || []
   }
 }
 
-export async function getAllAdminUsers(variables: any) {
+export async function getAllUsers(variables: any) {
   const search = variables?.search || ''
   const limit = variables?.size || 10
   const page = variables?.page || 1
+  const b_id = variables?.b_id || ''
+  const role_id = variables?.role_id || ''
 
-  const res = await getRequest(`/users?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`)
+  let url = `/users?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`
+  if (b_id) url += `&b_id=${encodeURIComponent(b_id)}`
+  if (role_id) url += `&role_id=${encodeURIComponent(role_id)}`
+
+  const res = await getRequest(url)
 
   if (res?.data) {
     const mapped = Array.isArray(res.data) ? res.data.map((u: any) => formatUser(u)) : []
@@ -65,17 +72,21 @@ export async function getAllAdminUsers(variables: any) {
   }
 }
 
-export async function createAdmin(
+export async function createUser(
   variables: any,
   path?: string
-): Promise<{ data?: { createAdmin?: any; updateAdmin?: any }; errors?: any }> {
-  const payload = {
-    name: variables?.adminData?.name,
-    email: variables?.adminData?.email,
-    role_id: variables?.adminData?.role_id,
-    password: variables?.adminData?.password,
-    is_admin: true,
+): Promise<{ data?: { createUser?: any; updateUser?: any }; errors?: any }> {
+  const payload: any = {
+    name: variables?.userData?.name,
+    email: variables?.userData?.email,
+    role_id: variables?.userData?.role_id,
+    password: variables?.userData?.password,
+    is_admin: variables?.userData?.is_admin || false,
     auto_approve: true
+  }
+
+  if (variables?.userData?.b_id) {
+    payload.b_id = variables?.userData?.b_id
   }
 
   const res = await postServerRequest('/users', {
@@ -87,7 +98,7 @@ export async function createAdmin(
   if (res?.data) {
     return {
       data: {
-        createAdmin: formatUser(res.data)
+        createUser: formatUser(res.data)
       }
     }
   }
@@ -97,17 +108,19 @@ export async function createAdmin(
   }
 }
 
-export async function updateAdmin(
+export async function updateUser(
   variables: any,
   path?: string
-): Promise<{ data?: { createAdmin?: any; updateAdmin?: any }; errors?: any }> {
-  const id = variables?.adminData?.id
+): Promise<{ data?: { createUser?: any; updateUser?: any }; errors?: any }> {
+  const id = variables?.userData?.id
 
-  const payload = {
-    name: variables?.adminData?.name,
-    email: variables?.adminData?.email,
-    role_id: variables?.adminData?.role_id
-  }
+  const payload: any = {}
+  if (variables?.userData?.name !== undefined) payload.name = variables?.userData?.name
+  if (variables?.userData?.email !== undefined) payload.email = variables?.userData?.email
+  if (variables?.userData?.role_id !== undefined) payload.role_id = variables?.userData?.role_id
+  if (variables?.userData?.is_admin !== undefined) payload.is_admin = variables?.userData?.is_admin
+  if (variables?.userData?.status !== undefined) payload.is_active = variables?.userData?.status
+  if (variables?.userData?.b_id !== undefined) payload.b_id = variables?.userData?.b_id
 
   const res = await postServerRequest(`/users/${id}`, {
     method: 'PUT',
@@ -118,7 +131,7 @@ export async function updateAdmin(
   if (res?.data) {
     return {
       data: {
-        updateAdmin: formatUser(res.data)
+        updateUser: formatUser(res.data)
       }
     }
   }
@@ -128,7 +141,7 @@ export async function updateAdmin(
   }
 }
 
-export async function deleteAdminUser(variables: any, path?: string) {
+export async function deleteUser(variables: any, path?: string) {
   const id = variables?.id
 
   const res = await postServerRequest(`/users/${id}`, {
@@ -139,7 +152,7 @@ export async function deleteAdminUser(variables: any, path?: string) {
   if (res?.status === 200 || res?.data) {
     return {
       data: {
-        deleteAdminUser: {
+        deleteUser: {
           id
         }
       }
@@ -151,7 +164,7 @@ export async function deleteAdminUser(variables: any, path?: string) {
   }
 }
 
-export async function updateAdminPassword(id: string, password: string, path?: string) {
+export async function updateUserPassword(id: string, password: string, path?: string) {
   const res = await postServerRequest(`/users/${id}/password`, {
     method: 'PUT',
     body: { password },
@@ -161,7 +174,7 @@ export async function updateAdminPassword(id: string, password: string, path?: s
   if (res?.data) {
     return {
       data: {
-        updateAdminPassword: formatUser(res.data)
+        updateUserPassword: formatUser(res.data)
       }
     }
   }

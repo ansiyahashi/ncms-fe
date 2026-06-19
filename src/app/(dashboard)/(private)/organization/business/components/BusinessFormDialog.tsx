@@ -21,7 +21,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
 
-import { createBusiness, updateBusiness } from '@/libs/actions/business.action'
+import { createBusiness, updateBusiness } from '../api/business.action'
 import { validateError } from '@/api'
 
 const getSchema = (isEdit: boolean) => {
@@ -58,12 +58,15 @@ const getSchema = (isEdit: boolean) => {
     baseSchema.confirm_password = pipe(string(), nonEmpty('Please confirm your password'))
 
     const objSchema = object(baseSchema) as any
+
     const checkFn = partialCheck(
       [['password'], ['confirm_password']],
       (input: any) => input.password === input.confirm_password,
       'The two passwords do not match.'
     ) as any
+
     const forwardFn = forward(checkFn, ['confirm_password'] as any) as any
+
     return pipe(objSchema, forwardFn) as any
   }
 

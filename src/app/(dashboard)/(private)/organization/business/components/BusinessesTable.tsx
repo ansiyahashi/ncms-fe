@@ -22,7 +22,7 @@ import { addOrUpdateItem } from '@/utils/helper-functions/addOrUpdateItem'
 import { validateError } from '@/api'
 import { PERMISSIONS } from '@/libs/paths'
 
-import { deleteBusiness, updateBusiness } from '@/libs/actions/business.action'
+import { deleteBusiness, updateBusiness } from '../api/business.action'
 import BusinessFormDialog from './BusinessFormDialog'
 
 const columnHelper = createColumnHelper<any>()
@@ -53,19 +53,7 @@ const BusinessesTable = ({
   const [data, setData] = useState(initialData)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [openDialog, setOpenDialog] = useState(false)
-  const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null)
 
-  useEffect(() => {
-    const getCookie = (name: string) => {
-      if (typeof document === 'undefined') return null
-      const value = `; ${document.cookie}`
-      const parts = value.split(`; ${name}=`)
-
-      if (parts.length === 2) return parts.pop()?.split(';').shift()
-    }
-
-    setActiveBusinessId(getCookie('selectedBusinessId') || null)
-  }, [])
 
   useEffect(() => {
     setData(initialData)
@@ -186,24 +174,7 @@ const BusinessesTable = ({
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center gap-0.5'>
-            {isSuperAdmin && (
-              <Tooltip title={activeBusinessId === row?.original?.id ? 'Active Context' : 'Set as Active Context'}>
-                <IconButton
-                  size='small'
-                  onClick={() => {
-                    const bId = row?.original?.id
 
-                    document.cookie = `selectedBusinessId=${bId}; path=/; max-age=31536000`
-                    setActiveBusinessId(bId)
-                    toast.success(`Active business context set to: ${row?.original?.name}`)
-                    router.refresh()
-                  }}
-                  color={activeBusinessId === row?.original?.id ? 'warning' : 'default'}
-                >
-                  <i className={activeBusinessId === row?.original?.id ? 'ri-star-fill' : 'ri-star-line'} />
-                </IconButton>
-              </Tooltip>
-            )}
 
             <RoleGuard allowedPermissions={[PERMISSIONS.BUSINESS_DELETE]}>
               <IconButton size='small' onClick={() => onDeleteBusiness(row?.original?.id)} color='error'>
@@ -221,7 +192,7 @@ const BusinessesTable = ({
         enableSorting: false
       })
     ],
-    [onDeleteBusiness, handleStatusChange, onEditItem, isSuperAdmin, activeBusinessId, router]
+    [onDeleteBusiness, handleStatusChange, onEditItem, isSuperAdmin, router]
   )
 
   const onDataChange = useCallback((data: any) => {

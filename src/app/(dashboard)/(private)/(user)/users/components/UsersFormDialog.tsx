@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
+import { useSession } from 'next-auth/react'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -12,20 +13,25 @@ import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
-import { CircularProgress, FormHelperText, InputAdornment, InputLabel, MenuItem, Select } from '@mui/material'
-import { nonEmpty, object, pipe, string, minLength, email, forward, partialCheck } from 'valibot'
+import { CircularProgress, FormHelperText, InputAdornment, InputLabel, MenuItem, Select, Switch, FormControlLabel } from '@mui/material'
+import { nonEmpty, object, pipe, string, minLength, email, forward, partialCheck, boolean } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
 
-import { createAdmin, updateAdmin } from '@/libs/actions/adminUser.action'
+import { createUser, updateUser } from '../api/user.action'
 import { validateError } from '@/api'
 
-const getSchema = (isEdit = false) => {
+const getSchema = (isEdit = false, isSuperAdmin = false) => {
   const baseSchema: any = {
     name: pipe(string(), nonEmpty('Please enter name')),
     email: pipe(string(), email('Please enter a valid email address')),
-    role_id: pipe(string(), nonEmpty('Please select role'))
+    role_id: pipe(string(), nonEmpty('Please select role')),
+    is_admin: boolean()
+  }
+
+  if (isSuperAdmin) {
+    baseSchema.b_id = pipe(string(), nonEmpty('Please select business'))
   }
 
   if (!isEdit) {
@@ -58,19 +64,33 @@ const defaultValues = {
   email: '',
   role_id: '',
   password: '',
-  confirm_password: ''
+  confirm_password: '',
+  is_admin: false,
+  b_id: ''
 }
 
-interface AdminUsersFormDialogProps {
+interface UsersFormDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
   details?: any
   onDataChange: (data: any) => void
   roles?: any[]
-  adminUsers?: any[]
+  businesses?: any[]
+  currentBId?: string
 }
 
-const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = [] }: AdminUsersFormDialogProps) => {
+const UsersFormDialog = ({
+  open,
+  setOpen,
+  details,
+  onDataChange,
+  roles = [],
+  businesses = [],
+  currentBId = ''
+}: UsersFormDialogProps) => {
+  const { data: session } = useSession()
+  const isSuperAdmin = session?.user?.is_super_admin || false
+
   const [showPassword, setShowPassword] = React.useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
 
@@ -81,11 +101,16 @@ const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = []
     handleSubmit,
     reset,
     setError,
+    watch,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm({
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      b_id: currentBId || ''
+    },
     mode: 'onChange',
-    resolver: valibotResolver(getSchema(isEdit) as any)
+    resolver: valibotResolver(getSchema(isEdit, isSuperAdmin) as any)
   })
 
   useEffect(() => {
@@ -95,39 +120,63 @@ const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = []
         email: details.email || '',
         role_id: details.role_id || '',
         password: '',
-        confirm_password: ''
+        confirm_password: '',
+        is_admin: details.is_admin || false,
+        b_id: details.b_id || ''
       })
     } else {
-      reset(defaultValues)
+      reset({
+        ...defaultValues,
+        b_id: currentBId || ''
+      })
     }
-  }, [details, reset, open])
+  }, [details, reset, open, currentBId])
+
+  const selectedBId = watch('b_id')
+
+  // Reset role_id if selected business changes
+  useEffect(() => {
+    if (!isEdit && open) {
+      setValue('role_id', '')
+    }
+  }, [selectedBId, setValue, isEdit, open])
+
+  const filteredRoles = useMemo(() => {
+    if (selectedBId) {
+      return roles.filter(role => role.b_id === selectedBId)
+    }
+    if (isSuperAdmin && !selectedBId) {
+      return []
+    }
+    return roles
+  }, [roles, selectedBId, isSuperAdmin])
 
   const onSubmit = async (params: any) => {
     try {
       const payload = {
-        adminData: {
+        userData: {
           ...(details?.id ? { id: details?.id } : {}),
           ...params
         }
       }
 
       if (details?.id) {
-        delete payload.adminData.password
-        delete payload.adminData.confirm_password
+        delete payload.userData.password
+        delete payload.userData.confirm_password
       }
 
       const { data, errors } = details?.id
-        ? await updateAdmin({ adminData: payload.adminData }, '/admin-users')
-        : await createAdmin(payload)
+        ? await updateUser({ userData: payload.userData }, '/users')
+        : await createUser(payload)
 
-      if (data?.updateAdmin) {
+      if (data?.updateUser) {
         toast.success('Successfully updated User.')
-        handleClose(data?.updateAdmin)
+        handleClose(data?.updateUser)
       }
 
-      if (data?.createAdmin) {
+      if (data?.createUser) {
         toast.success('Successfully created User.')
-        handleClose(data?.createAdmin)
+        handleClose(data?.createUser)
       }
 
       validateError(errors, defaultValues, setError)
@@ -213,6 +262,34 @@ const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = []
                 )}
               </FormControl>
             </Grid>
+
+            {isSuperAdmin && (
+              <Grid size={12}>
+                <FormControl fullWidth error={Boolean(errors?.b_id)}>
+                  <InputLabel>Business</InputLabel>
+                  <Controller
+                    name='b_id'
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        value={value}
+                        onChange={onChange}
+                        label='Business'
+                        disabled={isEdit}
+                      >
+                        {businesses?.map(business => (
+                          <MenuItem key={business?.id} value={business?.id}>
+                            {business?.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                  {errors?.b_id && <FormHelperText>{errors?.b_id?.message}</FormHelperText>}
+                </FormControl>
+              </Grid>
+            )}
+
             <Grid size={12}>
               <FormControl fullWidth error={Boolean(errors?.role_id)}>
                 <InputLabel>Role</InputLabel>
@@ -221,7 +298,7 @@ const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = []
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <Select value={value} onChange={onChange} label='Role'>
-                      {roles?.map(role => (
+                      {filteredRoles?.map(role => (
                         <MenuItem key={role?.id} value={role?.id}>
                           {role?.name}
                         </MenuItem>
@@ -231,6 +308,28 @@ const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = []
                 />
                 {errors?.role_id && <FormHelperText>{errors?.role_id?.message}</FormHelperText>}
               </FormControl>
+            </Grid>
+            <Grid size={12}>
+              <FormControlLabel
+                control={
+                  <Controller
+                    name='is_admin'
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Switch
+                        checked={value}
+                        onChange={e => onChange(e.target.checked)}
+                        color='primary'
+                      />
+                    )}
+                  />
+                }
+                label={
+                  <Typography variant='body2' color='text.primary' className='font-medium'>
+                    Is Admin User
+                  </Typography>
+                }
+              />
             </Grid>
             {!details?.id && (
               <>
@@ -335,4 +434,4 @@ const AdminUsersFormDialog = ({ open, setOpen, details, onDataChange, roles = []
   )
 }
 
-export default AdminUsersFormDialog
+export default UsersFormDialog
