@@ -9,6 +9,12 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
     href: '/home',
     icon: 'ri-home-smile-line'
   },
+  {
+    label: 'Master Config',
+    href: '/master-config',
+    icon: 'ri-settings-4-line',
+    permission: PERMISSIONS.LOCATION
+  },
 
   // {
   //   label: 'Reports & Dashboard',
@@ -79,13 +85,14 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
         href: '/facility/hierarchy',
         icon: 'ri-map-pin-2-line',
         permission: PERMISSIONS.FACILITY
-      },
-      {
-        label: 'Master Config',
-        href: '/master-config',
-        icon: 'ri-settings-4-line',
-        permission: PERMISSIONS.LOCATION
       }
+
+      // {
+      //   label: 'Master Config',
+      //   href: '/master-config',
+      //   icon: 'ri-settings-4-line',
+      //   permission: PERMISSIONS.LOCATION
+      // }
     ]
   }
 
