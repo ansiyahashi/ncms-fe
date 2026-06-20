@@ -3,6 +3,9 @@ import type { Theme } from '@mui/material/styles'
 
 const chip: Theme['components'] = {
   MuiChip: {
+    defaultProps: {
+      size: 'small'
+    },
     styleOverrides: {
       root: ({ ownerState, theme }) => ({
         variants: [

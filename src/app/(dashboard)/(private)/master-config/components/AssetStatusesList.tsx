@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -16,14 +16,15 @@ import { format } from 'date-fns'
 import LocalSearchbar from '@components/common/LocalSearchbar'
 import DataTable from '@components/data-table/DataTable'
 import { addOrUpdateItem } from '@/utils/helper-functions/addOrUpdateItem'
+import { getAvatarColor } from '@/utils/helper-functions/getAvatarColor'
 import { formUrlQuery, removeKeysFromQuery } from '@/utils/helper-functions/searchHelpers'
 import { validateError } from '@/api'
-import { deleteCostCenter, updateCostCenter } from '../api/master-config.action'
+import { deleteAssetStatus, updateAssetStatus } from '../api/master-config.action'
 import ConfigFormDialog from './ConfigFormDialog'
 
 const columnHelper = createColumnHelper<any>()
 
-interface CostCentersTabProps {
+interface AssetStatusesListProps {
   initialData: any[]
   initialPagination: {
     totalData: number
@@ -37,7 +38,7 @@ interface CostCentersTabProps {
   isSuperAdmin?: boolean
 }
 
-const CostCentersTab = ({
+const AssetStatusesList = ({
   initialData,
   initialPagination,
   perPageCount,
@@ -45,9 +46,10 @@ const CostCentersTab = ({
   loading,
   businessesData = [],
   isSuperAdmin = false
-}: CostCentersTabProps) => {
+}: AssetStatusesListProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   const [data, setData] = useState(initialData)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -82,58 +84,55 @@ const CostCentersTab = ({
     [searchParams, router]
   )
 
-  const onDeleteCostCenter = useCallback(
+  const onDeleteAssetStatus = useCallback(
     async (id: string) => {
-      if (!confirm('Are you sure you want to delete this Cost Center?')) return
+      if (!confirm('Are you sure you want to delete this Asset Status?')) return
 
       try {
-        const { errors } = await deleteCostCenter({ id, b_id: currentBId }, '/master-config')
+        const { errors } = await deleteAssetStatus({ id, b_id: currentBId }, pathname)
 
         if (!errors) {
-          toast.success('Cost Center deleted successfully!')
+          toast.success('Asset Status deleted successfully!')
           setData(prev => prev.filter(item => item?.id !== id))
         } else {
           validateError(errors)
         }
       } catch (error: any) {
-        toast.error(error?.message || 'Failed to delete the Cost Center.')
+        toast.error(error?.message || 'Failed to delete the Asset Status.')
       }
     },
     [currentBId]
   )
 
-  const handleStatusChange = useCallback(
-    async (item: any) => {
-      const updatedStatus = !item?.status
+  const handleStatusChange = useCallback(async (item: any) => {
+    const updatedStatus = !item?.status
 
-      try {
-        const { data: responseData, errors } = await updateCostCenter(
-          {
-            configData: {
-              id: item?.id,
-              b_id: currentBId,
-              status: updatedStatus,
-              name: item.name,
-              code: item.code
-            }
-          },
-          '/master-config'
-        )
+    try {
+      const { data: responseData, errors } = await updateAssetStatus(
+        {
+          configData: {
+            id: item?.id,
+            status: updatedStatus,
+            name: item.name,
+            key: item.key,
+            description: item.description
+          }
+        },
+        pathname
+      )
 
-        if (responseData?.updateCostCenter) {
-          toast.success(`Status updated for ${item?.name || 'N/A'}`)
-          addOrUpdateItem(setData, { ...item, status: updatedStatus }, 'id')
-        }
-
-        if (errors) {
-          validateError(errors)
-        }
-      } catch (error: any) {
-        toast.error(error?.message || `Failed to update status for ${item?.name || 'N/A'}`)
+      if (responseData?.updateAssetStatus) {
+        toast.success(`Status updated for ${item?.name || 'N/A'}`)
+        addOrUpdateItem(setData, { ...item, status: updatedStatus }, 'id')
       }
-    },
-    [currentBId]
-  )
+
+      if (errors) {
+        validateError(errors)
+      }
+    } catch (error: any) {
+      toast.error(error?.message || `Failed to update status for ${item?.name || 'N/A'}`)
+    }
+  }, [])
 
   const onEditItem = useCallback((item: any) => {
     setSelectedItem(item)
@@ -146,17 +145,40 @@ const CostCentersTab = ({
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('code', {
-        header: 'Code',
+      columnHelper.accessor('key', {
+        header: 'Key',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row?.original?.code}
+          <Typography color='text.secondary' className='font-mono text-xs bg-actionHover px-2 py-0.5 rounded border border-divider inline-block'>
+            {row?.original?.key}
           </Typography>
         )
       }),
       columnHelper.accessor('name', {
         header: 'Name',
-        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.name}</Typography>
+        cell: ({ row }) => {
+          const name = row?.original?.name || ''
+          const firstLetter = name.charAt(0).toUpperCase()
+          const colorClass = getAvatarColor(name)
+
+          return (
+            <div className='flex items-center gap-3'>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none ${colorClass}`}>
+                {firstLetter}
+              </div>
+              <Typography color='text.primary' className='font-semibold text-[13px]'>
+                {name}
+              </Typography>
+            </div>
+          )
+        }
+      }),
+      columnHelper.accessor('description', {
+        header: 'Description',
+        cell: ({ row }) => (
+          <Typography color='text.secondary' variant='body2' noWrap className='max-w-[200px] text-xs'>
+            {row?.original?.description || '-'}
+          </Typography>
+        )
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -190,7 +212,7 @@ const CostCentersTab = ({
             }
           }
 
-          return <Typography>{formattedDate}</Typography>
+          return <Typography color='text.secondary' className='text-xs'>{formattedDate}</Typography>
         }
       }),
       columnHelper.accessor('action', {
@@ -198,17 +220,17 @@ const CostCentersTab = ({
         cell: ({ row }) => (
           <div className='flex items-center gap-0.5'>
             <IconButton size='small' onClick={() => onEditItem(row?.original)} color='secondary'>
-              <i className='ri-edit-box-line text-textSecondary' />
+              <i className='ri-edit-box-line text-textSecondary text-[18px]' />
             </IconButton>
-            <IconButton size='small' onClick={() => onDeleteCostCenter(row?.original?.id)} color='error'>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
+            <IconButton size='small' onClick={() => onDeleteAssetStatus(row?.original?.id)} color='error'>
+              <i className='ri-delete-bin-7-line text-textSecondary text-[18px]' />
             </IconButton>
           </div>
         ),
         enableSorting: false
       })
     ],
-    [onDeleteCostCenter, handleStatusChange, onEditItem]
+    [onDeleteAssetStatus, handleStatusChange, onEditItem]
   )
 
   const showAddButton = true
@@ -219,17 +241,17 @@ const CostCentersTab = ({
         <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
           <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
             <LocalSearchbar
-              route={'/master-config'}
-              placeholder='Search Cost Centers'
+              route={pathname}
+              placeholder='Search Asset Statuses'
               className='max-sm:is-full sm:min-is-[220px]'
             />
 
             {isSuperAdmin && (
               <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 200 }}>
-                <InputLabel id='cost-center-business-select-label'>Business Context</InputLabel>
+                <InputLabel id='asset-status-business-select-label'>Business Context</InputLabel>
                 <Select
-                  labelId='cost-center-business-select-label'
-                  id='cost-center-business-select'
+                  labelId='asset-status-business-select-label'
+                  id='asset-status-business-select'
                   value={currentBId}
                   label='Business Context'
                   onChange={e => handleBusinessChange(e.target.value as string)}
@@ -258,11 +280,11 @@ const CostCentersTab = ({
                   setDialogOpen(true)
                 }}
               >
-                Add Cost Center
+                Add Asset Status
               </Button>
             ) : (
               <Typography color='text.secondary' variant='body2' className='italic'>
-                Select a business context to add cost center
+                Select a business context to add status
               </Typography>
             )}
           </div>
@@ -280,7 +302,7 @@ const CostCentersTab = ({
       <ConfigFormDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
-        type='cost-centers'
+        type='asset-statuses'
         details={selectedItem}
         onDataChange={handleDataChange}
         businessesData={businessesData}
@@ -290,4 +312,4 @@ const CostCentersTab = ({
   )
 }
 
-export default CostCentersTab
+export default AssetStatusesList

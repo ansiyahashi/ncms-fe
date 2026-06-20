@@ -3,6 +3,9 @@ import type { Theme } from '@mui/material/styles'
 
 const input: Theme['components'] = {
   MuiFormControl: {
+    defaultProps: {
+      size: 'small'
+    },
     styleOverrides: {
       root: {
         '&:has(.MuiRadio-root) .MuiFormHelperText-root, &:has(.MuiCheckbox-root) .MuiFormHelperText-root, &:has(.MuiSwitch-root) .MuiFormHelperText-root':
@@ -13,6 +16,9 @@ const input: Theme['components'] = {
     }
   },
   MuiInputBase: {
+    defaultProps: {
+      size: 'small'
+    },
     styleOverrides: {
       root: ({ theme }) => ({
         lineHeight: 1.6,
@@ -47,6 +53,9 @@ const input: Theme['components'] = {
     }
   },
   MuiFilledInput: {
+    defaultProps: {
+      size: 'small'
+    },
     styleOverrides: {
       root: ({ theme }) => ({
         '&.MuiInputBase-sizeSmall': {
@@ -111,6 +120,9 @@ const input: Theme['components'] = {
     }
   },
   MuiOutlinedInput: {
+    defaultProps: {
+      size: 'small'
+    },
     styleOverrides: {
       root: ({ theme }) => ({
         '&.MuiInputBase-sizeSmall': {
@@ -147,6 +159,7 @@ const input: Theme['components'] = {
           }
         }),
         blockSize: '1.6em',
+        fontSize: '0.875rem',
         '& ~ .MuiOutlinedInput-notchedOutline': {
           borderColor: 'var(--mui-palette-customColors-inputBorder)'
         }

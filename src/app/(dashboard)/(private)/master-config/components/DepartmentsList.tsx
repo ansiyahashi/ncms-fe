@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -16,14 +16,15 @@ import { format } from 'date-fns'
 import LocalSearchbar from '@components/common/LocalSearchbar'
 import DataTable from '@components/data-table/DataTable'
 import { addOrUpdateItem } from '@/utils/helper-functions/addOrUpdateItem'
+import { getAvatarColor } from '@/utils/helper-functions/getAvatarColor'
 import { formUrlQuery, removeKeysFromQuery } from '@/utils/helper-functions/searchHelpers'
 import { validateError } from '@/api'
-import { deleteFacilityType, updateFacilityType } from '../api/master-config.action'
+import { deleteDepartment, updateDepartment } from '../api/master-config.action'
 import ConfigFormDialog from './ConfigFormDialog'
 
 const columnHelper = createColumnHelper<any>()
 
-interface FacilityTypesTabProps {
+interface DepartmentsListProps {
   initialData: any[]
   initialPagination: {
     totalData: number
@@ -37,7 +38,7 @@ interface FacilityTypesTabProps {
   isSuperAdmin?: boolean
 }
 
-const FacilityTypesTab = ({
+const DepartmentsList = ({
   initialData,
   initialPagination,
   perPageCount,
@@ -45,9 +46,10 @@ const FacilityTypesTab = ({
   loading,
   businessesData = [],
   isSuperAdmin = false
-}: FacilityTypesTabProps) => {
+}: DepartmentsListProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   const [data, setData] = useState(initialData)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -82,24 +84,24 @@ const FacilityTypesTab = ({
     [searchParams, router]
   )
 
-  const onDeleteFacilityType = useCallback(
+  const onDeleteDepartment = useCallback(
     async (id: string) => {
-      if (!confirm('Are you sure you want to delete this Facility Type?')) return
+      if (!confirm('Are you sure you want to delete this Department?')) return
 
       try {
-        const { errors } = await deleteFacilityType({ id, b_id: currentBId }, '/master-config')
+        const { errors } = await deleteDepartment({ id, b_id: currentBId }, pathname)
 
         if (!errors) {
-          toast.success('Facility Type deleted successfully!')
+          toast.success('Department deleted successfully!')
           setData(prev => prev.filter(item => item?.id !== id))
         } else {
           validateError(errors)
         }
       } catch (error: any) {
-        toast.error(error?.message || 'Failed to delete the Facility Type.')
+        toast.error(error?.message || 'Failed to delete the Department.')
       }
     },
-    [currentBId]
+    [currentBId, pathname]
   )
 
   const handleStatusChange = useCallback(
@@ -107,21 +109,20 @@ const FacilityTypesTab = ({
       const updatedStatus = !item?.status
 
       try {
-        const { data: responseData, errors } = await updateFacilityType(
+        const { data: responseData, errors } = await updateDepartment(
           {
             configData: {
               id: item?.id,
               b_id: currentBId,
               status: updatedStatus,
               name: item.name,
-              key: item.key,
               description: item.description
             }
           },
-          '/master-config'
+          pathname
         )
 
-        if (responseData?.updateFacilityType) {
+        if (responseData?.updateDepartment) {
           toast.success(`Status updated for ${item?.name || 'N/A'}`)
           addOrUpdateItem(setData, { ...item, status: updatedStatus }, 'id')
         }
@@ -133,7 +134,7 @@ const FacilityTypesTab = ({
         toast.error(error?.message || `Failed to update status for ${item?.name || 'N/A'}`)
       }
     },
-    [currentBId]
+    [currentBId, pathname]
   )
 
   const onEditItem = useCallback((item: any) => {
@@ -147,22 +148,29 @@ const FacilityTypesTab = ({
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('key', {
-        header: 'Key',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row?.original?.key}
-          </Typography>
-        )
-      }),
       columnHelper.accessor('name', {
         header: 'Name',
-        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.name}</Typography>
+        cell: ({ row }) => {
+          const name = row?.original?.name || ''
+          const firstLetter = name.charAt(0).toUpperCase()
+          const colorClass = getAvatarColor(name)
+
+          return (
+            <div className='flex items-center gap-3'>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none ${colorClass}`}>
+                {firstLetter}
+              </div>
+              <Typography color='text.primary' className='font-semibold text-[13px]'>
+                {name}
+              </Typography>
+            </div>
+          )
+        }
       }),
       columnHelper.accessor('description', {
         header: 'Description',
         cell: ({ row }) => (
-          <Typography color='text.secondary' variant='body2' noWrap className='max-w-[200px]'>
+          <Typography color='text.secondary' variant='body2' noWrap className='max-w-[200px] text-xs'>
             {row?.original?.description || '-'}
           </Typography>
         )
@@ -199,7 +207,7 @@ const FacilityTypesTab = ({
             }
           }
 
-          return <Typography>{formattedDate}</Typography>
+          return <Typography color='text.secondary' className='text-xs'>{formattedDate}</Typography>
         }
       }),
       columnHelper.accessor('action', {
@@ -207,17 +215,17 @@ const FacilityTypesTab = ({
         cell: ({ row }) => (
           <div className='flex items-center gap-0.5'>
             <IconButton size='small' onClick={() => onEditItem(row?.original)} color='secondary'>
-              <i className='ri-edit-box-line text-textSecondary' />
+              <i className='ri-edit-box-line text-textSecondary text-[18px]' />
             </IconButton>
-            <IconButton size='small' onClick={() => onDeleteFacilityType(row?.original?.id)} color='error'>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
+            <IconButton size='small' onClick={() => onDeleteDepartment(row?.original?.id)} color='error'>
+              <i className='ri-delete-bin-7-line text-textSecondary text-[18px]' />
             </IconButton>
           </div>
         ),
         enableSorting: false
       })
     ],
-    [onDeleteFacilityType, handleStatusChange, onEditItem]
+    [onDeleteDepartment, handleStatusChange, onEditItem]
   )
 
   const showAddButton = true
@@ -228,24 +236,22 @@ const FacilityTypesTab = ({
         <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
           <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
             <LocalSearchbar
-              route={'/master-config'}
-              placeholder='Search Facility Types'
+              route={pathname}
+              placeholder='Search Departments'
               className='max-sm:is-full sm:min-is-[220px]'
             />
 
             {isSuperAdmin && (
-              <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 200 }}>
-                <InputLabel id='facility-type-business-select-label'>Business Context</InputLabel>
+              <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }}>
+                <InputLabel id='business-select-label'>Business</InputLabel>
                 <Select
-                  labelId='facility-type-business-select-label'
-                  id='facility-type-business-select'
+                  labelId='business-select-label'
+                  id='business-select'
                   value={currentBId}
-                  label='Business Context'
+                  label='Business'
                   onChange={e => handleBusinessChange(e.target.value as string)}
                 >
-                  <MenuItem value=''>
-                    All Businesses
-                  </MenuItem>
+                  <MenuItem value=''>All Businesses</MenuItem>
                   {businessesData.map((business: any) => (
                     <MenuItem key={business.id} value={business.id}>
                       {business.name}
@@ -255,26 +261,23 @@ const FacilityTypesTab = ({
               </FormControl>
             )}
           </div>
-          <div className='flex gap-4 max-sm:flex-col max-sm:is-full'>
-            {showAddButton ? (
+
+          {showAddButton && (
+            <div className='flex gap-4 max-sm:flex-col max-sm:is-full'>
               <Button
                 variant='contained'
                 color='primary'
-                className='max-sm:is-full'
                 startIcon={<i className='ri-add-line' />}
                 onClick={() => {
-                  setSelectedItem(currentBId ? { b_id: currentBId } : null)
+                  setSelectedItem(null)
                   setDialogOpen(true)
                 }}
+                className='max-sm:is-full'
               >
-                Add Facility Type
+                Add Department
               </Button>
-            ) : (
-              <Typography color='text.secondary' variant='body2' className='italic'>
-                Select a business context to add facility type
-              </Typography>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
         <DataTable
           data={data}
@@ -289,7 +292,7 @@ const FacilityTypesTab = ({
       <ConfigFormDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
-        type='facility-types'
+        type='departments'
         details={selectedItem}
         onDataChange={handleDataChange}
         businessesData={businessesData}
@@ -299,4 +302,4 @@ const FacilityTypesTab = ({
   )
 }
 
-export default FacilityTypesTab
+export default DepartmentsList

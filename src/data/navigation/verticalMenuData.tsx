@@ -10,10 +10,52 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
     icon: 'ri-home-smile-line'
   },
   {
+    isSection: true,
     label: 'Master Config',
-    href: '/master-config',
-    icon: 'ri-settings-4-line',
-    permission: PERMISSIONS.LOCATION
+    children: [
+      {
+        label: 'Cost Centers',
+        href: '/master-config/cost-centers',
+        icon: 'ri-money-dollar-circle-line',
+        permission: PERMISSIONS.COST_CENTER
+      },
+      {
+        label: 'User Types',
+        href: '/master-config/user-types',
+        icon: 'ri-user-settings-line',
+        permission: PERMISSIONS.USER_TYPE
+      },
+      {
+        label: 'Owner Types',
+        href: '/master-config/owner-types',
+        icon: 'ri-key-2-line',
+        permission: PERMISSIONS.OWNER_TYPE
+      },
+      {
+        label: 'Facility Types',
+        href: '/master-config/facility-types',
+        icon: 'ri-building-4-line',
+        permission: PERMISSIONS.FACILITY_TYPE
+      },
+      {
+        label: 'Asset Statuses',
+        href: '/master-config/asset-statuses',
+        icon: 'ri-checkbox-circle-line',
+        permission: PERMISSIONS.ASSET_STATUS
+      },
+      {
+        label: 'Departments',
+        href: '/master-config/departments',
+        icon: 'ri-community-line',
+        permission: PERMISSIONS.DEPARTMENT
+      },
+      {
+        label: 'Designations',
+        href: '/master-config/designations',
+        icon: 'ri-briefcase-line',
+        permission: PERMISSIONS.DESIGNATION
+      }
+    ]
   },
 
   // {
@@ -62,12 +104,7 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
         icon: 'ri-briefcase-line',
         permission: PERMISSIONS.CLIENT
       },
-      {
-        label: 'Departments',
-        href: '/organization/department',
-        icon: 'ri-group-line',
-        permission: PERMISSIONS.DEPARTMENT
-      },
+
       {
         label: 'Approval Workflows',
         href: '/organization/approvals',

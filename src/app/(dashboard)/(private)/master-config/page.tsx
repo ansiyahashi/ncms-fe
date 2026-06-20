@@ -1,28 +1,38 @@
 import { getServerSession } from 'next-auth'
-
-import { authOptions } from '@/libs/auth'
-import type { PageProps } from '@/types/pageTypes'
-import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
-import MasterConfigTabs from './components/MasterConfigTabs'
+import MasterConfigViews from './components/MasterConfigViews'
 import {
   getAllCostCenters,
   getAllUserTypes,
   getAllOwnerTypes,
   getAllFacilityTypes,
-  getAllAssetStatuses
+  getAllAssetStatuses,
+  getAllDepartments,
+  getAllDesignations
 } from './api/master-config.action'
+import { authOptions } from '@/libs/auth'
+import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
+
+interface PageProps {
+  searchParams: Promise<{
+    view?: string
+    q?: string
+    page?: string
+    'per-page'?: string
+    b_id?: string
+  }>
+}
 
 export default async function MasterConfigPage({ searchParams }: PageProps) {
   const params = await (searchParams ||
     Promise.resolve({
-      tab: 'cost-centers',
+      view: 'cost-centers',
       q: '',
       page: '0',
       'per-page': '10',
       b_id: ''
     }))
 
-  const activeTab = params.tab || 'cost-centers'
+  const activeView = params.view || 'cost-centers'
   const query = params.q || ''
   const perPageCount = Number(params['per-page'] ?? 10)
   const pageCount = Number(params.page ?? 0)
@@ -31,16 +41,17 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
   const session = await getServerSession(authOptions)
   const isSuperAdmin = session?.user?.is_super_admin || false
 
-  let tabData: any[] = []
+  let viewData: any[] = []
   let pagination = { totalData: 0, totalPages: 0, currentPage: 0 }
   let errorRes: any = null
+  let departmentsData: any[] = []
 
-  // Fetch target tab data on the server
-  switch (activeTab) {
+  // Fetch target view data on the server
+  switch (activeView) {
     case 'cost-centers': {
       const res = await getAllCostCenters({ search: query, size: perPageCount, page: pageCount + 1, b_id })
 
-      tabData = res?.data?.costCenters?.data || []
+      viewData = res?.data?.costCenters?.data || []
       pagination = {
         totalData: res?.data?.costCenters?.totalData || 0,
         totalPages: res?.data?.costCenters?.totalPages || 0,
@@ -53,7 +64,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     case 'user-types': {
       const res = await getAllUserTypes({ search: query, size: perPageCount, page: pageCount + 1, b_id })
 
-      tabData = res?.data?.userTypes?.data || []
+      viewData = res?.data?.userTypes?.data || []
       pagination = {
         totalData: res?.data?.userTypes?.totalData || 0,
         totalPages: res?.data?.userTypes?.totalPages || 0,
@@ -66,7 +77,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     case 'owner-types': {
       const res = await getAllOwnerTypes({ search: query, size: perPageCount, page: pageCount + 1, b_id })
 
-      tabData = res?.data?.ownerTypes?.data || []
+      viewData = res?.data?.ownerTypes?.data || []
       pagination = {
         totalData: res?.data?.ownerTypes?.totalData || 0,
         totalPages: res?.data?.ownerTypes?.totalPages || 0,
@@ -79,7 +90,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     case 'facility-types': {
       const res = await getAllFacilityTypes({ search: query, size: perPageCount, page: pageCount + 1, b_id })
 
-      tabData = res?.data?.facilityTypes?.data || []
+      viewData = res?.data?.facilityTypes?.data || []
       pagination = {
         totalData: res?.data?.facilityTypes?.totalData || 0,
         totalPages: res?.data?.facilityTypes?.totalPages || 0,
@@ -92,13 +103,45 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     case 'asset-statuses': {
       const res = await getAllAssetStatuses({ search: query, size: perPageCount, page: pageCount + 1, b_id })
 
-      tabData = res?.data?.assetStatuses?.data || []
+      viewData = res?.data?.assetStatuses?.data || []
       pagination = {
         totalData: res?.data?.assetStatuses?.totalData || 0,
         totalPages: res?.data?.assetStatuses?.totalPages || 0,
         currentPage: res?.data?.assetStatuses?.currentPage || 0
       }
       errorRes = res?.errors
+
+      break
+    }
+
+    case 'departments': {
+      const res = await getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id })
+
+      viewData = res?.data?.departments?.data || []
+      pagination = {
+        totalData: res?.data?.departments?.totalData || 0,
+        totalPages: res?.data?.departments?.totalPages || 0,
+        currentPage: res?.data?.departments?.currentPage || 0
+      }
+      errorRes = res?.errors
+
+      break
+    }
+
+    case 'designations': {
+      const [res, deptsRes] = await Promise.all([
+        getAllDesignations({ search: query, size: perPageCount, page: pageCount + 1, b_id }),
+        getAllDepartments({ size: 1000, b_id })
+      ])
+
+      viewData = res?.data?.designations?.data || []
+      pagination = {
+        totalData: res?.data?.designations?.totalData || 0,
+        totalPages: res?.data?.designations?.totalPages || 0,
+        currentPage: res?.data?.designations?.currentPage || 0
+      }
+      errorRes = res?.errors || deptsRes?.errors
+      departmentsData = deptsRes?.data?.departments?.data || []
 
       break
     }
@@ -115,14 +158,15 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
   }
 
   return (
-    <MasterConfigTabs
-      activeTab={activeTab}
-      tabData={tabData}
+    <MasterConfigViews
+      activeView={activeView}
+      viewData={viewData}
       pagination={pagination}
       perPageCount={perPageCount}
       pageCount={pageCount}
       loading={false}
       businessesData={businessesData}
+      departmentsData={departmentsData}
       isSuperAdmin={isSuperAdmin}
     />
   )

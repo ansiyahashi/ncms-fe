@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { useSession } from 'next-auth/react'
 import Dialog from '@mui/material/Dialog'
@@ -13,8 +13,9 @@ import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
-import { CircularProgress, FormHelperText, InputAdornment, InputLabel, MenuItem, Select, Switch, FormControlLabel } from '@mui/material'
-import { nonEmpty, object, pipe, string, minLength, email, forward, partialCheck, boolean } from 'valibot'
+import Box from '@mui/material/Box'
+import { CircularProgress, FormHelperText, InputAdornment, InputLabel, MenuItem, Select, Switch } from '@mui/material'
+import { nonEmpty, object, pipe, string, minLength, email, forward, partialCheck, boolean, optional } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
@@ -27,6 +28,8 @@ const getSchema = (isEdit = false, isSuperAdmin = false) => {
     name: pipe(string(), nonEmpty('Please enter name')),
     email: pipe(string(), email('Please enter a valid email address')),
     role_id: pipe(string(), nonEmpty('Please select role')),
+    dep_id: optional(string()),
+    des_id: optional(string()),
     is_admin: boolean()
   }
 
@@ -63,6 +66,8 @@ const defaultValues = {
   name: '',
   email: '',
   role_id: '',
+  dep_id: '',
+  des_id: '',
   password: '',
   confirm_password: '',
   is_admin: false,
@@ -76,6 +81,8 @@ interface UsersFormDialogProps {
   onDataChange: (data: any) => void
   roles?: any[]
   businesses?: any[]
+  departments?: any[]
+  designations?: any[]
   currentBId?: string
 }
 
@@ -86,6 +93,8 @@ const UsersFormDialog = ({
   onDataChange,
   roles = [],
   businesses = [],
+  departments = [],
+  designations = [],
   currentBId = ''
 }: UsersFormDialogProps) => {
   const { data: session } = useSession()
@@ -93,6 +102,7 @@ const UsersFormDialog = ({
 
   const [showPassword, setShowPassword] = React.useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
+  const [isFirstRender, setIsFirstRender] = useState(true)
 
   const isEdit = !!details?.id
 
@@ -119,6 +129,8 @@ const UsersFormDialog = ({
         name: details.name || '',
         email: details.email || '',
         role_id: details.role_id || '',
+        dep_id: details.dep_id || '',
+        des_id: details.des_id || '',
         password: '',
         confirm_password: '',
         is_admin: details.is_admin || false,
@@ -138,6 +150,8 @@ const UsersFormDialog = ({
   useEffect(() => {
     if (!isEdit && open) {
       setValue('role_id', '')
+      setValue('dep_id', '')
+      setValue('des_id', '')
     }
   }, [selectedBId, setValue, isEdit, open])
 
@@ -150,6 +164,48 @@ const UsersFormDialog = ({
     }
     return roles
   }, [roles, selectedBId, isSuperAdmin])
+
+  const filteredDepartments = useMemo(() => {
+    if (selectedBId) {
+      return departments.filter(dep => dep.b_id === selectedBId)
+    }
+    if (isSuperAdmin && !selectedBId) {
+      return []
+    }
+    return departments
+  }, [departments, selectedBId, isSuperAdmin])
+
+  const selectedDepId = watch('dep_id')
+
+  useEffect(() => {
+    if (open) {
+      setIsFirstRender(true)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!isFirstRender) {
+      setValue('des_id', '')
+    } else {
+      setIsFirstRender(false)
+    }
+  }, [selectedDepId, setValue])
+
+  const filteredDesignations = useMemo(() => {
+    let list = designations
+    if (selectedBId) {
+      list = list.filter(des => des.b_id === selectedBId)
+    } else if (isSuperAdmin && !selectedBId) {
+      return []
+    }
+
+    if (selectedDepId) {
+      list = list.filter(des => des.dep_id === selectedDepId)
+    } else {
+      list = list.filter(des => !des.dep_id)
+    }
+    return list
+  }, [designations, selectedBId, selectedDepId, isSuperAdmin])
 
   const onSubmit = async (params: any) => {
     try {
@@ -203,24 +259,42 @@ const UsersFormDialog = ({
     <Dialog
       open={open}
       maxWidth='sm'
+      fullWidth
       scroll='body'
       onClose={() => {
         setOpen(false)
         reset(defaultValues)
       }}
+      PaperProps={{
+        sx: {
+          borderRadius: '16px',
+          padding: '8px'
+        }
+      }}
     >
-      <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
-        {details ? 'Update' : 'Add a New'} User
-        <Typography component='span' className='flex flex-col text-center'>
-          Please configure user details
+      <DialogTitle variant='h4' className='flex gap-1 flex-col text-center pt-8 pb-4 px-6 sm:px-16'>
+        <span className='font-bold text-textPrimary'>
+          {details?.id ? 'Update' : 'New'} User Account
+        </span>
+        <Typography variant='body2' className='text-textSecondary'>
+          {details?.id
+            ? 'Modify operational and security credentials for this user account'
+            : 'Configure credentials for this new user account'}
         </Typography>
       </DialogTitle>
+
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent className='pbs-1 sm:pbe-6 sm:pli-16'>
-          <IconButton onClick={() => setOpen(false)} className='absolute block-start-4 inline-end-4'>
-            <i className='ri-close-line text-textSecondary' />
+        <DialogContent className='pt-2 pb-6 px-6 sm:px-16 flex flex-col gap-5'>
+          <IconButton
+            onClick={() => setOpen(false)}
+            className='absolute top-4 right-4 hover:bg-actionHover rounded-full transition-colors'
+          >
+            <i className='ri-close-line text-textSecondary text-xl' />
           </IconButton>
+
           <Grid container spacing={5}>
+
+            {/* Name */}
             <Grid size={12}>
               <FormControl fullWidth>
                 <Controller
@@ -234,12 +308,19 @@ const UsersFormDialog = ({
                       onChange={onChange}
                       placeholder='Please enter user name'
                       error={Boolean(errors?.name)}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
                 {errors?.name && <FormHelperText sx={{ color: 'error.main' }}>{errors?.name?.message}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Email */}
             <Grid size={12}>
               <FormControl fullWidth>
                 <Controller
@@ -254,6 +335,11 @@ const UsersFormDialog = ({
                       placeholder='Please enter email address'
                       error={Boolean(errors?.email)}
                       disabled={isEdit}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
@@ -263,6 +349,7 @@ const UsersFormDialog = ({
               </FormControl>
             </Grid>
 
+            {/* Business Context (Super Admin) */}
             {isSuperAdmin && (
               <Grid size={12}>
                 <FormControl fullWidth error={Boolean(errors?.b_id)}>
@@ -276,6 +363,7 @@ const UsersFormDialog = ({
                         onChange={onChange}
                         label='Business'
                         disabled={isEdit}
+                        sx={{ borderRadius: '8px' }}
                       >
                         {businesses?.map(business => (
                           <MenuItem key={business?.id} value={business?.id}>
@@ -290,6 +378,7 @@ const UsersFormDialog = ({
               </Grid>
             )}
 
+            {/* Role selection */}
             <Grid size={12}>
               <FormControl fullWidth error={Boolean(errors?.role_id)}>
                 <InputLabel>Role</InputLabel>
@@ -297,7 +386,12 @@ const UsersFormDialog = ({
                   name='role_id'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Select value={value} onChange={onChange} label='Role'>
+                    <Select
+                      value={value}
+                      onChange={onChange}
+                      label='Role'
+                      sx={{ borderRadius: '8px' }}
+                    >
                       {filteredRoles?.map(role => (
                         <MenuItem key={role?.id} value={role?.id}>
                           {role?.name}
@@ -309,28 +403,89 @@ const UsersFormDialog = ({
                 {errors?.role_id && <FormHelperText>{errors?.role_id?.message}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Department selection */}
             <Grid size={12}>
-              <FormControlLabel
-                control={
-                  <Controller
-                    name='is_admin'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Switch
-                        checked={value}
-                        onChange={e => onChange(e.target.checked)}
-                        color='primary'
-                      />
-                    )}
-                  />
-                }
-                label={
-                  <Typography variant='body2' color='text.primary' className='font-medium'>
-                    Is Admin User
-                  </Typography>
-                }
-              />
+              <FormControl fullWidth error={Boolean(errors?.dep_id)}>
+                <InputLabel>Department</InputLabel>
+                <Controller
+                  name='dep_id'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      value={value ?? ''}
+                      onChange={onChange}
+                      label='Department'
+                      sx={{ borderRadius: '8px' }}
+                    >
+                      <MenuItem value=''>
+                        <em>None</em>
+                      </MenuItem>
+                      {filteredDepartments?.map(dep => (
+                        <MenuItem key={dep?.id} value={dep?.id}>
+                          {dep?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.dep_id && <FormHelperText>{errors?.dep_id?.message}</FormHelperText>}
+              </FormControl>
             </Grid>
+
+            {/* Designation selection */}
+            <Grid size={12}>
+              <FormControl fullWidth error={Boolean(errors?.des_id)}>
+                <InputLabel>Designation</InputLabel>
+                <Controller
+                  name='des_id'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      value={value ?? ''}
+                      onChange={onChange}
+                      label='Designation'
+                      sx={{ borderRadius: '8px' }}
+                    >
+                      <MenuItem value=''>
+                        <em>None</em>
+                      </MenuItem>
+                      {filteredDesignations?.map(des => (
+                        <MenuItem key={des?.id} value={des?.id}>
+                          {des?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.des_id && <FormHelperText>{errors?.des_id?.message}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            {/* Switch Toggle is_admin Row */}
+            <Grid size={12}>
+              <Box className='flex items-center justify-between p-4 rounded-xl border border-divider bg-backgroundDefault/50'>
+                <Box className='flex flex-col gap-0.5'>
+                  <Typography className='text-sm font-bold text-textPrimary'>Administrator Account</Typography>
+                  <Typography className='text-[10px] text-textSecondary'>
+                    Grant full administrator permissions to configure workflows and settings.
+                  </Typography>
+                </Box>
+                <Controller
+                  name='is_admin'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Switch
+                      checked={value}
+                      onChange={e => onChange(e.target.checked)}
+                      color='primary'
+                    />
+                  )}
+                />
+              </Box>
+            </Grid>
+
+            {/* Password fields (new user only) */}
             {!details?.id && (
               <>
                 <Grid size={12}>
@@ -350,6 +505,7 @@ const UsersFormDialog = ({
                           error={Boolean(errors?.password)}
                           slotProps={{
                             input: {
+                              sx: { borderRadius: '8px' },
                               endAdornment: (
                                 <InputAdornment position='end'>
                                   <IconButton
@@ -388,6 +544,7 @@ const UsersFormDialog = ({
                           error={Boolean(errors?.confirm_password)}
                           slotProps={{
                             input: {
+                              sx: { borderRadius: '8px' },
                               endAdornment: (
                                 <InputAdornment position='end'>
                                   <IconButton
@@ -414,19 +571,29 @@ const UsersFormDialog = ({
             )}
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button type='submit' variant='contained' color='primary' disabled={isSubmitting}>
-            {isSubmitting && <CircularProgress size={20} />}
-            {details?.id ? 'Update' : 'Add'} User
-          </Button>
+
+        <DialogActions className='px-6 pb-8 sm:px-16 flex gap-3 justify-end'>
           <Button
             variant='outlined'
             onClick={() => {
               setOpen(false)
               reset(defaultValues)
             }}
+            sx={{ borderRadius: '8px', px: 6 }}
+            className='hover:bg-actionHover transition-all'
           >
             Cancel
+          </Button>
+          <Button
+            type='submit'
+            variant='contained'
+            color='primary'
+            disabled={isSubmitting}
+            sx={{ borderRadius: '8px', px: 6 }}
+            className='hover:opacity-90 transition-all font-semibold'
+          >
+            {isSubmitting && <CircularProgress size={20} className='me-2' />}
+            {details?.id ? 'Update' : 'Add'} User
           </Button>
         </DialogActions>
       </form>

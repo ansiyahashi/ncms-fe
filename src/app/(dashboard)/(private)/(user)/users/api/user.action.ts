@@ -89,6 +89,14 @@ export async function createUser(
     payload.b_id = variables?.userData?.b_id
   }
 
+  if (variables?.userData?.dep_id !== undefined) {
+    payload.dep_id = variables?.userData?.dep_id || null
+  }
+
+  if (variables?.userData?.des_id !== undefined) {
+    payload.des_id = variables?.userData?.des_id || null
+  }
+
   const res = await postServerRequest('/users', {
     method: 'POST',
     body: payload,
@@ -121,6 +129,8 @@ export async function updateUser(
   if (variables?.userData?.is_admin !== undefined) payload.is_admin = variables?.userData?.is_admin
   if (variables?.userData?.status !== undefined) payload.is_active = variables?.userData?.status
   if (variables?.userData?.b_id !== undefined) payload.b_id = variables?.userData?.b_id
+  if (variables?.userData?.dep_id !== undefined) payload.dep_id = variables?.userData?.dep_id || null
+  if (variables?.userData?.des_id !== undefined) payload.des_id = variables?.userData?.des_id || null
 
   const res = await postServerRequest(`/users/${id}`, {
     method: 'PUT',

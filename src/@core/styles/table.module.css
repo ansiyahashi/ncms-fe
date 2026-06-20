@@ -1,7 +1,7 @@
 .table {
   inline-size: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.75rem; /* Reduced from 0.875rem */
   white-space: nowrap;
 
   [align='right'] > * {
@@ -17,29 +17,29 @@
 
     th {
       font-weight: 500;
-      font-size: 0.8125rem;
+      font-size: 0.75rem; /* Reduced from 0.8125rem */
       letter-spacing: 0.2px;
       line-height: 1.8462;
       text-align: start;
-      block-size: 64px;
+      block-size: 42px; /* Reduced from 50px */
       background-color: var(--mui-palette-customColors-tableHeaderBg);
       &:not(:first-of-type):not(:last-of-type) {
-        padding-block: 0.5rem;
-        padding-inline: 1rem;
+        padding-block: 0.375rem; /* Reduced from 0.5rem */
+        padding-inline: 0.75rem; /* Reduced from 1rem */
       }
       &:first-of-type {
         &:not(:has(input[type='checkbox'])) {
-          padding-block: 0.5rem;
-          padding-inline: 1.25rem 1rem;
+          padding-block: 0.375rem; /* Reduced from 0.5rem */
+          padding-inline: 1rem 0.75rem; /* Reduced padding */
         }
         &:has(input[type='checkbox']) {
-          inline-size: 51px;
-          padding-inline-start: 0.6875rem;
+          inline-size: 45px; /* Reduced from 51px */
+          padding-inline-start: 0.5rem; /* Reduced from 0.6875rem */
         }
       }
       &:last-of-type {
-        padding-block: 0.5rem;
-        padding-inline: 1rem 1.25rem;
+        padding-block: 0.375rem; /* Reduced from 0.5rem */
+        padding-inline: 0.75rem 1rem; /* Reduced padding */
       }
     }
   }
@@ -49,30 +49,66 @@
 
     th,
     td {
-      font-size: 0.9375rem;
+      font-size: 0.75rem; /* Reduced from 0.9375rem */
       line-height: 1.4667;
-      block-size: 50px;
+      block-size: 42px; /* Reduced from 50px */
       &:not(:first-of-type):not(:last-of-type) {
-        padding-block: 0.5rem;
-        padding-inline: 1rem;
+        padding-block: 0.375rem; /* Reduced from 0.5rem */
+        padding-inline: 0.75rem; /* Reduced from 1rem */
       }
       &:first-of-type {
         &:not(:has(input[type='checkbox'])) {
-          padding-block: 0.5rem;
-          padding-inline: 1.25rem 1rem;
+          padding-block: 0.375rem; /* Reduced from 0.5rem */
+          padding-inline: 1rem 0.75rem; /* Reduced padding */
         }
         &:has(input[type='checkbox']) {
-          padding-inline-start: 0.6875rem;
+          padding-inline-start: 0.5rem; /* Reduced from 0.6875rem */
         }
       }
       &:last-of-type {
-        padding-block: 0.5rem;
-        padding-inline: 1rem 1.25rem;
+        padding-block: 0.375rem; /* Reduced from 0.5rem */
+        padding-inline: 0.75rem 1rem; /* Reduced padding */
+      }
+    }
+
+    tr {
+      transition: background-color 0.15s ease;
+      
+      &:hover {
+        background-color: var(--mui-palette-action-hover);
       }
     }
 
     tr:not(:last-child) {
-      border-block-end: 1px solid var(--border-color);
+      border-block-end: 1px solid var(--mui-palette-divider, var(--border-color));
+    }
+  }
+
+  tfoot {
+    color: var(--mui-palette-text-primary);
+    border-block-start: 1px solid var(--border-color);
+
+    th,
+    td {
+      font-weight: 600;
+      font-size: 0.75rem;
+      line-height: 1.4667;
+      block-size: 42px;
+      background-color: var(--mui-palette-customColors-tableHeaderBg);
+      &:not(:first-of-type):not(:last-of-type) {
+        padding-block: 0.375rem;
+        padding-inline: 0.75rem;
+      }
+      &:first-of-type {
+        border-inline-start: 1px solid var(--border-color);
+        padding-block: 0.375rem;
+        padding-inline: 1rem 0.75rem;
+      }
+      &:last-of-type {
+        border-inline-end: 1px solid var(--border-color);
+        padding-block: 0.375rem;
+        padding-inline: 0.75rem 1rem;
+      }
     }
   }
 }
@@ -83,9 +119,9 @@
   font-size: inherit;
   color: inherit;
   border-radius: var(--mui-shape-customBorderRadius-sm);
-  padding-block: 6px;
-  padding-inline: 10px;
-  margin-inline: -10px;
+  padding-block: 4px; /* Reduced from 6px */
+  padding-inline: 8px; /* Reduced from 10px */
+  margin-inline: -8px; /* Reduced from -10px */
 
   &:focus-visible {
     outline: 1px solid var(--mui-palette-primary-main);

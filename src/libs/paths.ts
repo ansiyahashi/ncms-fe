@@ -190,6 +190,13 @@ export const ROUTE_PERMISSIONS = [
 
   // Master Configuration
   { path: '/master-config', permission: PERMISSIONS.LOCATION },
+  { path: '/master-config/cost-centers', permission: PERMISSIONS.COST_CENTER },
+  { path: '/master-config/user-types', permission: PERMISSIONS.USER_TYPE },
+  { path: '/master-config/owner-types', permission: PERMISSIONS.OWNER_TYPE },
+  { path: '/master-config/facility-types', permission: PERMISSIONS.FACILITY_TYPE },
+  { path: '/master-config/asset-statuses', permission: PERMISSIONS.ASSET_STATUS },
+  { path: '/master-config/departments', permission: PERMISSIONS.DEPARTMENT },
+  { path: '/master-config/designations', permission: PERMISSIONS.DESIGNATION },
 
   // Asset Management
   { path: '/assets/registry', permission: PERMISSIONS.ASSET },

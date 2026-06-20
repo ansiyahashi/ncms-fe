@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -16,14 +16,15 @@ import { format } from 'date-fns'
 import LocalSearchbar from '@components/common/LocalSearchbar'
 import DataTable from '@components/data-table/DataTable'
 import { addOrUpdateItem } from '@/utils/helper-functions/addOrUpdateItem'
+import { getAvatarColor } from '@/utils/helper-functions/getAvatarColor'
 import { formUrlQuery, removeKeysFromQuery } from '@/utils/helper-functions/searchHelpers'
 import { validateError } from '@/api'
-import { deleteOwnerType, updateOwnerType } from '../api/master-config.action'
+import { deleteFacilityType, updateFacilityType } from '../api/master-config.action'
 import ConfigFormDialog from './ConfigFormDialog'
 
 const columnHelper = createColumnHelper<any>()
 
-interface OwnerTypesTabProps {
+interface FacilityTypesListProps {
   initialData: any[]
   initialPagination: {
     totalData: number
@@ -37,7 +38,7 @@ interface OwnerTypesTabProps {
   isSuperAdmin?: boolean
 }
 
-const OwnerTypesTab = ({
+const FacilityTypesList = ({
   initialData,
   initialPagination,
   perPageCount,
@@ -45,9 +46,10 @@ const OwnerTypesTab = ({
   loading,
   businessesData = [],
   isSuperAdmin = false
-}: OwnerTypesTabProps) => {
+}: FacilityTypesListProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   const [data, setData] = useState(initialData)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -82,21 +84,21 @@ const OwnerTypesTab = ({
     [searchParams, router]
   )
 
-  const onDeleteOwnerType = useCallback(
+  const onDeleteFacilityType = useCallback(
     async (id: string) => {
-      if (!confirm('Are you sure you want to delete this Owner Type?')) return
+      if (!confirm('Are you sure you want to delete this Facility Type?')) return
 
       try {
-        const { errors } = await deleteOwnerType({ id, b_id: currentBId }, '/master-config')
+        const { errors } = await deleteFacilityType({ id, b_id: currentBId }, pathname)
 
         if (!errors) {
-          toast.success('Owner Type deleted successfully!')
+          toast.success('Facility Type deleted successfully!')
           setData(prev => prev.filter(item => item?.id !== id))
         } else {
           validateError(errors)
         }
       } catch (error: any) {
-        toast.error(error?.message || 'Failed to delete the Owner Type.')
+        toast.error(error?.message || 'Failed to delete the Facility Type.')
       }
     },
     [currentBId]
@@ -107,19 +109,21 @@ const OwnerTypesTab = ({
       const updatedStatus = !item?.status
 
       try {
-        const { data: responseData, errors } = await updateOwnerType(
+        const { data: responseData, errors } = await updateFacilityType(
           {
             configData: {
               id: item?.id,
               b_id: currentBId,
               status: updatedStatus,
-              name: item.name
+              name: item.name,
+              key: item.key,
+              description: item.description
             }
           },
-          '/master-config'
+          pathname
         )
 
-        if (responseData?.updateOwnerType) {
+        if (responseData?.updateFacilityType) {
           toast.success(`Status updated for ${item?.name || 'N/A'}`)
           addOrUpdateItem(setData, { ...item, status: updatedStatus }, 'id')
         }
@@ -145,11 +149,38 @@ const OwnerTypesTab = ({
 
   const columns = useMemo(
     () => [
+      columnHelper.accessor('key', {
+        header: 'Key',
+        cell: ({ row }) => (
+          <Typography color='text.secondary' className='font-mono text-xs bg-actionHover px-2 py-0.5 rounded border border-divider inline-block'>
+            {row?.original?.key}
+          </Typography>
+        )
+      }),
       columnHelper.accessor('name', {
         header: 'Name',
+        cell: ({ row }) => {
+          const name = row?.original?.name || ''
+          const firstLetter = name.charAt(0).toUpperCase()
+          const colorClass = getAvatarColor(name)
+
+          return (
+            <div className='flex items-center gap-3'>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none ${colorClass}`}>
+                {firstLetter}
+              </div>
+              <Typography color='text.primary' className='font-semibold text-[13px]'>
+                {name}
+              </Typography>
+            </div>
+          )
+        }
+      }),
+      columnHelper.accessor('description', {
+        header: 'Description',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row?.original?.name}
+          <Typography color='text.secondary' variant='body2' noWrap className='max-w-[200px] text-xs'>
+            {row?.original?.description || '-'}
           </Typography>
         )
       }),
@@ -185,7 +216,7 @@ const OwnerTypesTab = ({
             }
           }
 
-          return <Typography>{formattedDate}</Typography>
+          return <Typography color='text.secondary' className='text-xs'>{formattedDate}</Typography>
         }
       }),
       columnHelper.accessor('action', {
@@ -193,17 +224,17 @@ const OwnerTypesTab = ({
         cell: ({ row }) => (
           <div className='flex items-center gap-0.5'>
             <IconButton size='small' onClick={() => onEditItem(row?.original)} color='secondary'>
-              <i className='ri-edit-box-line text-textSecondary' />
+              <i className='ri-edit-box-line text-textSecondary text-[18px]' />
             </IconButton>
-            <IconButton size='small' onClick={() => onDeleteOwnerType(row?.original?.id)} color='error'>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
+            <IconButton size='small' onClick={() => onDeleteFacilityType(row?.original?.id)} color='error'>
+              <i className='ri-delete-bin-7-line text-textSecondary text-[18px]' />
             </IconButton>
           </div>
         ),
         enableSorting: false
       })
     ],
-    [onDeleteOwnerType, handleStatusChange, onEditItem]
+    [onDeleteFacilityType, handleStatusChange, onEditItem]
   )
 
   const showAddButton = true
@@ -214,17 +245,17 @@ const OwnerTypesTab = ({
         <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
           <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
             <LocalSearchbar
-              route={'/master-config'}
-              placeholder='Search Owner Types'
+              route={pathname}
+              placeholder='Search Facility Types'
               className='max-sm:is-full sm:min-is-[220px]'
             />
 
             {isSuperAdmin && (
               <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 200 }}>
-                <InputLabel id='owner-type-business-select-label'>Business Context</InputLabel>
+                <InputLabel id='facility-type-business-select-label'>Business Context</InputLabel>
                 <Select
-                  labelId='owner-type-business-select-label'
-                  id='owner-type-business-select'
+                  labelId='facility-type-business-select-label'
+                  id='facility-type-business-select'
                   value={currentBId}
                   label='Business Context'
                   onChange={e => handleBusinessChange(e.target.value as string)}
@@ -253,11 +284,11 @@ const OwnerTypesTab = ({
                   setDialogOpen(true)
                 }}
               >
-                Add Owner Type
+                Add Facility Type
               </Button>
             ) : (
               <Typography color='text.secondary' variant='body2' className='italic'>
-                Select a business context to add owner type
+                Select a business context to add facility type
               </Typography>
             )}
           </div>
@@ -275,7 +306,7 @@ const OwnerTypesTab = ({
       <ConfigFormDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
-        type='owner-types'
+        type='facility-types'
         details={selectedItem}
         onDataChange={handleDataChange}
         businessesData={businessesData}
@@ -285,4 +316,4 @@ const OwnerTypesTab = ({
   )
 }
 
-export default OwnerTypesTab
+export default FacilityTypesList

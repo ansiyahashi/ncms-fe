@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, memo } from 'react'
+
 import { useRouter } from 'next/navigation'
 
 import Button from '@mui/material/Button'
@@ -9,18 +10,18 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 import {
   Box,
   Card,
   CardContent,
   Divider,
   Switch,
-  Select,
-  MenuItem,
   CircularProgress,
   FormHelperText,
-  Checkbox,
-  FormControlLabel,
   InputAdornment
 } from '@mui/material'
 import { array, boolean, nonEmpty, object, pipe, string } from 'valibot'
@@ -48,41 +49,71 @@ const defaultValues = {
 const formatFallbackLabel = (str: string) => {
   const parts = str.split('.')
   const action = parts[1] || str
-  return action.charAt(0).toUpperCase() + action.slice(1).replace(/[-_]/g, ' ')
+
+  
+return action.charAt(0).toUpperCase() + action.slice(1).replace(/[-_]/g, ' ')
 }
+
+const formatResourceName = (name: string) => {
+  return name
+    .replace(/[-_]/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+// --- Sub-components ---
 
 interface PermissionModuleCardProps {
   module: any
-  selected: string[]
-  onToggle: (id: string) => void
-  onToggleAll: (module: any, shouldGrant: boolean) => void
+  value: string[]
+  onChange: (val: string[]) => void
 }
 
-const PermissionModuleCard = ({ module, selected, onToggle, onToggleAll }: PermissionModuleCardProps) => {
-  const allSelected = module.permissions.every((p: any) => selected.includes(p.id))
+const PermissionModuleCard = memo(({ module, value, onChange }: PermissionModuleCardProps) => {
+  const allSelected = module.permissions.every((p: any) => value.includes(p.id))
+
+  const handleToggleAll = () => {
+    const ids = module.permissions.map((p: any) => p.id)
+    const otherIds = value.filter((id: string) => !ids.includes(id))
+
+    if (allSelected) {
+      onChange(otherIds)
+    } else {
+      onChange([...otherIds, ...ids])
+    }
+  }
+
+  const handleToggleItem = (id: string) => {
+    if (value.includes(id)) {
+      onChange(value.filter((i: string) => i !== id))
+    } else {
+      onChange([...value, id])
+    }
+  }
 
   return (
     <Card
       variant='outlined'
-      className='!h-full flex flex-col !rounded-xl hover:!border-primary !transition-colors !shadow-none'
+      className='flex flex-col rounded-xl border border-divider hover:border-primary transition-colors shadow-none h-full bg-backgroundPaper'
     >
-      <Box className='p-4 flex items-center justify-between border-b'>
-        <Typography variant='subtitle2' className='!font-bold truncate mr-2' color='text.primary'>
+      <Box className='p-4 flex items-center justify-between border-b border-divider'>
+        <Typography variant='subtitle2' className='font-bold truncate mr-2 text-textPrimary'>
           {module.label}
         </Typography>
         <Button
           size='small'
           variant='text'
-          onClick={() => onToggleAll(module, !allSelected)}
-          className={`!text-[10px] !py-0.5 !px-2 !min-w-0 !font-bold ${allSelected ? '!text-error' : '!text-primary'}`}
+          onClick={handleToggleAll}
+          className={`text-[10px] py-0.5 px-2 min-w-0 font-bold ${allSelected ? 'text-error' : 'text-primary'}`}
         >
           {allSelected ? 'Ungrant All' : 'Grant All'}
         </Button>
       </Box>
-      <CardContent className='!p-3 flex-grow overflow-y-auto max-h-[300px] custom-scrollbar'>
+      <CardContent className='p-3 flex-grow overflow-y-auto max-h-[300px] custom-scrollbar'>
         <Grid container spacing={1}>
           {module.permissions.map((perm: any) => {
-            const isSelected = selected.includes(perm.id)
+            const isSelected = value.includes(perm.id)
 
             return (
               <Grid size={12} key={perm.id}>
@@ -91,20 +122,20 @@ const PermissionModuleCard = ({ module, selected, onToggle, onToggleAll }: Permi
                     <Checkbox
                       size='small'
                       checked={isSelected}
-                      onChange={() => onToggle(perm.id)}
+                      onChange={() => handleToggleItem(perm.id)}
                       sx={{ '&.Mui-checked': { color: 'success.main' } }}
                     />
                   }
                   label={
                     <Typography
                       variant='body2'
-                      className={`!text-[13px] ${isSelected ? '!font-medium' : ''}`}
+                      className={`text-[13px] ${isSelected ? 'font-medium' : ''}`}
                       color={isSelected ? 'text.primary' : 'text.secondary'}
                     >
                       {formatFallbackLabel(perm.permission_code || perm.name)}
                     </Typography>
                   }
-                  className='!m-0 !w-full'
+                  className='m-0 w-full'
                 />
               </Grid>
             )
@@ -113,7 +144,9 @@ const PermissionModuleCard = ({ module, selected, onToggle, onToggleAll }: Permi
       </CardContent>
     </Card>
   )
-}
+})
+
+PermissionModuleCard.displayName = 'PermissionModuleCard'
 
 interface RolesFormProps {
   role?: any
@@ -153,14 +186,6 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
     }
   }, [role, reset])
 
-  const formatResourceName = (name: string) => {
-    return name
-      .replace(/[-_]/g, ' ')
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
   const groupedPermissions = useMemo(() => {
     const groups: Record<
       string,
@@ -197,10 +222,13 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
   const filteredModules = useMemo(() => {
     return groupedPermissions.filter(m => {
       const matchesApp = selectedApp === 'all' || m.app === selectedApp
+
       const matchesSearch =
         !searchTerm.trim() ||
         m.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.permissions.some((p: any) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        m.permissions.some((p: any) =>
+          (p.permission_code || p.name).toLowerCase().includes(searchTerm.toLowerCase())
+        )
 
       return matchesApp && matchesSearch
     })
@@ -242,12 +270,15 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
 
   const handleDelete = async () => {
     if (!role?.id || !window.confirm('Are you sure you want to delete this role?')) return
+
     try {
       const { data, errors: responseErrors } = await deleteRole({ deleteRoleId: role.id }, '/roles')
+
       if (data?.deleteRole) {
         toast.success('Role deleted successfully')
         router.push('/roles')
       }
+
       validateError(responseErrors)
     } catch (e: any) {
       toast.error(e.message || 'Failed to delete role')
@@ -255,23 +286,27 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
   }
 
   return (
-    <Box className='p-6 min-h-screen'>
-      {/* Header */}
-      <Box className='flex flex-wrap items-center justify-between gap-4 mb-6 pt-2'>
-        <Box>
-          <Breadcrumbs separator={<i className='ri-arrow-right-s-line text-lg' />} className='!mb-1'>
-            <Typography variant='body2' className='font-medium text-textSecondary cursor-pointer' onClick={() => router.push('/roles')}>
+    <Box className='p-6 min-h-screen flex flex-col gap-6 w-full'>
+      {/* Breadcrumbs Header */}
+      <Box className='flex flex-wrap items-center justify-between gap-4 pt-2'>
+        <Box className='flex flex-col gap-1'>
+          <Breadcrumbs separator={<i className='ri-arrow-right-s-line text-lg text-textDisabled' />}>
+            <Typography
+              variant='body2'
+              className='font-semibold text-textSecondary cursor-pointer hover:text-primary transition-colors'
+              onClick={() => router.push('/roles')}
+            >
               Roles
             </Typography>
-            <Typography variant='body2' className='font-medium text-textSecondary'>
+            <Typography variant='body2' className='font-semibold text-textSecondary'>
               Permission Sets
             </Typography>
-            <Typography variant='body2' className='!text-primary font-bold uppercase tracking-wider'>
+            <Typography variant='body2' className='text-primary font-bold uppercase tracking-wider'>
               {role?.id ? `Edit ${roleName || 'Role'}` : 'New Role'}
             </Typography>
           </Breadcrumbs>
         </Box>
-        <Box className='flex items-center gap-2'>
+        <Box className='flex items-center gap-3'>
           {role?.id && (
             <Button
               variant='outlined'
@@ -279,21 +314,27 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
               size='small'
               startIcon={<i className='ri-delete-bin-line' />}
               onClick={handleDelete}
-              className='!rounded-lg !px-4'
+              sx={{ borderRadius: '8px' }}
             >
-              Delete
+              Delete Role
             </Button>
           )}
-          <Button variant='outlined' color='secondary' size='small' onClick={() => reset()} className='!rounded-lg !px-4'>
-            Reset
+          <Button
+            variant='outlined'
+            color='secondary'
+            size='small'
+            onClick={() => reset()}
+            sx={{ borderRadius: '8px' }}
+          >
+            Reset Form
           </Button>
         </Box>
       </Box>
 
       {/* Main Form Fields Card */}
-      <Card variant='outlined' className='!mb-4 !rounded-2xl !overflow-visible !shadow-none'>
-        <CardContent className='!p-6'>
-          <Grid container spacing={4} alignItems='center'>
+      <Card variant='outlined' className='border border-divider shadow-sm rounded-2xl overflow-visible bg-backgroundPaper'>
+        <CardContent className='p-6'>
+          <Grid container spacing={5} alignItems='center'>
             <Grid size={{ xs: 12, md: 5 }}>
               <FormControl fullWidth>
                 <Controller
@@ -307,8 +348,11 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
                       onChange={onChange}
                       placeholder='e.g., Technician, Manager'
                       error={Boolean(errors?.name)}
-                      className='!rounded-xl'
-                      slotProps={{ input: { className: '!rounded-xl' } }}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
@@ -316,22 +360,21 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12, md: 3 }}>
-              <Box className='flex items-center gap-3 border rounded-xl px-3 py-1.5'>
-                <Typography variant='body2' className='!font-medium' color='text.secondary'>
+              <Box className='flex items-center justify-between border border-divider rounded-xl px-4 py-2 bg-backgroundDefault/50'>
+                <Typography variant='body2' className='font-bold text-textSecondary uppercase tracking-wider text-[10px]'>
                   Status
                 </Typography>
                 <Controller
                   name='status'
                   control={control}
-                  render={({ field }) => (
+                  render={({ field: { value, onChange } }) => (
                     <Box className='flex items-center gap-2'>
-                      <Switch {...field} checked={field.value} color='primary' />
+                      <Switch checked={value} onChange={e => onChange(e.target.checked)} color='primary' />
                       <Typography
                         variant='caption'
-                        className={`!font-bold ${field.value ? '!text-success' : ''}`}
-                        color={field.value ? 'success.main' : 'text.disabled'}
+                        className={`font-bold ${value ? 'text-success' : 'text-textDisabled'}`}
                       >
-                        {field.value ? 'ACTIVE' : 'INACTIVE'}
+                        {value ? 'ACTIVE' : 'INACTIVE'}
                       </Typography>
                     </Box>
                   )}
@@ -339,8 +382,12 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
               </Box>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <Box className='flex justify-end gap-2'>
-                <Button variant='outlined' onClick={() => router.push('/roles')} className='!rounded-xl !px-6 !py-3'>
+              <Box className='flex justify-end gap-3'>
+                <Button
+                  variant='outlined'
+                  onClick={() => router.push('/roles')}
+                  sx={{ borderRadius: '8px', px: 5 }}
+                >
                   Cancel
                 </Button>
                 <Button
@@ -348,7 +395,8 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
                   onClick={handleSubmit(onSubmit)}
                   disabled={isSubmitting}
                   startIcon={isSubmitting ? <CircularProgress size={20} /> : <i className='ri-save-line' />}
-                  className='!rounded-xl !px-10 !py-3 !font-bold !bg-primary'
+                  sx={{ borderRadius: '8px', px: 6 }}
+                  className='font-semibold'
                 >
                   Save Changes
                 </Button>
@@ -364,10 +412,13 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
                       value={value}
                       label='Description'
                       onChange={onChange}
-                      placeholder='Role description'
+                      placeholder='Role description details'
                       error={Boolean(errors?.description)}
-                      className='!rounded-xl'
-                      slotProps={{ input: { className: '!rounded-xl' } }}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
@@ -377,47 +428,28 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
         </CardContent>
       </Card>
 
-      {/* Permissions Section */}
+      {/* Permissions workspace controller */}
       <Controller
         name='permission_ids'
         control={control}
         rules={{ required: true }}
         render={({ field: { value = [], onChange } }) => {
-          const handleToggleItem = (id: string) => {
-            if (value.includes(id)) {
-              onChange(value.filter((i: string) => i !== id))
-            } else {
-              onChange([...value, id])
-            }
-          }
-
-          const handleToggleAllItems = (module: any, shouldGrant: boolean) => {
-            const ids = module.permissions.map((p: any) => p.id)
-            const otherIds = value.filter((id: string) => !ids.includes(id))
-            if (shouldGrant) {
-              onChange([...otherIds, ...ids])
-            } else {
-              onChange(otherIds)
-            }
-          }
-
-          const handleGrantAllItems = () => {
+          const handleGrantAll = () => {
             const allIds = permissions.map(p => p.id)
+
             onChange(allIds)
-            toast.info('All permissions granted')
+            toast.info('All permissions granted!')
           }
 
-          const handleDeselectAllItems = () => {
+          const handleDeselectAll = () => {
             onChange([])
-            toast.info('All permissions cleared')
+            toast.info('All permissions cleared!')
           }
 
           return (
-            <Box>
-              <Box
-                className='mb-6 flex flex-wrap gap-4 items-center p-3 rounded-2xl border'
-                sx={{ backgroundColor: 'background.paper' }}
-              >
+            <Box className='flex flex-col gap-6 w-full'>
+              {/* Search and Filters Bar */}
+              <Box className='flex flex-wrap gap-4 items-center p-3 rounded-2xl border border-divider bg-backgroundPaper'>
                 <TextField
                   placeholder='Search permissions module or action...'
                   size='medium'
@@ -427,25 +459,29 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
                     input: {
                       startAdornment: (
                         <InputAdornment position='start'>
-                          <i className='ri-search-2-line text-xl' style={{ color: 'var(--mui-palette-text-secondary)' }} />
+                          <i className='ri-search-2-line text-xl text-textSecondary' />
                         </InputAdornment>
                       ),
-                      className: '!rounded-xl border-none'
+                      sx: {
+                        borderRadius: '12px',
+                        '& fieldset': { border: 'none' }
+                      }
                     }
                   }}
-                  sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
                 />
                 <Divider orientation='vertical' flexItem className='hidden md:block' />
-                <FormControl size='medium' className='min-w-[200px]'>
+                <FormControl size='medium' className='min-w-[240px]'>
                   <Select
                     value={selectedApp}
                     onChange={e => setSelectedApp(e.target.value)}
-                    className='!rounded-xl'
-                    sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                    sx={{
+                      borderRadius: '12px',
+                      '& fieldset': { border: 'none' }
+                    }}
                   >
                     {apps.map(app => (
-                      <MenuItem key={app} value={app} className='!capitalize'>
-                        {app === 'all' ? 'All Modules' : formatResourceName(app)}
+                      <MenuItem key={app} value={app} className='capitalize'>
+                        {app === 'all' ? 'All Modules' : app}
                       </MenuItem>
                     ))}
                   </Select>
@@ -456,58 +492,56 @@ const RolesForm = ({ role, permissions = [] }: RolesFormProps) => {
                     size='small'
                     variant='outlined'
                     color='primary'
-                    onClick={handleGrantAllItems}
+                    onClick={handleGrantAll}
                     startIcon={<i className='ri-checkbox-multiple-line' />}
-                    className='!rounded-lg !px-4'
+                    sx={{ borderRadius: '8px', px: 4 }}
                   >
-                    Grant all
+                    Grant all permissions
                   </Button>
                   <Button
                     size='small'
                     variant='outlined'
                     color='secondary'
-                    onClick={handleDeselectAllItems}
+                    onClick={handleDeselectAll}
                     startIcon={<i className='ri-close-circle-line' />}
-                    className='!rounded-lg !px-4'
+                    sx={{ borderRadius: '8px', px: 4 }}
                   >
                     Clear all
                   </Button>
                 </Box>
               </Box>
 
-              <Box className='flex items-center justify-between mb-4'>
-                <Typography variant='overline' className='!block !font-bold !tracking-widest' color='text.disabled'>
+              {/* Header metrics */}
+              <Box className='flex items-center justify-between mb-2'>
+                <Typography variant='overline' className='block font-bold tracking-widest text-textDisabled'>
                   AVAILABLE PERMISSIONS ({filteredModules.length} MODULES)
                 </Typography>
-                <Typography variant='overline' className='!block !font-bold !tracking-widest' color='primary'>
+                <Typography variant='overline' className='block font-bold tracking-widest text-primary'>
                   {value.length} PERMISSIONS SELECTED
                 </Typography>
               </Box>
 
-              <Grid container spacing={3}>
+              {/* Interactive Modules Grid */}
+              <Grid container spacing={4}>
                 {filteredModules.map(m => (
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={m.id}>
                     <PermissionModuleCard
                       module={m}
-                      selected={value}
-                      onToggle={handleToggleItem}
-                      onToggleAll={handleToggleAllItems}
+                      value={value}
+                      onChange={onChange}
                     />
                   </Grid>
                 ))}
               </Grid>
 
               {filteredModules.length === 0 && (
-                <Box
-                  className='flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed'
-                  sx={{ backgroundColor: 'background.paper' }}
-                >
-                  <i className='ri-search-eye-line text-6xl mb-4' style={{ color: 'var(--mui-palette-text-disabled)' }} />
-                  <Typography variant='h6' color='text.disabled'>
+                <Box className='flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-divider bg-backgroundPaper'>
+                  <i className='ri-search-eye-line text-6xl mb-4 text-textDisabled' />
+                  <Typography variant='h6' className='text-textDisabled'>
                     No permission modules found
                   </Typography>
-                  <Typography variant='body2' color='text.disabled'>
-                    Try adjusting your search or module filter
+                  <Typography variant='body2' className='text-textDisabled'>
+                    Try adjusting your search or app filter
                   </Typography>
                 </Box>
               )}

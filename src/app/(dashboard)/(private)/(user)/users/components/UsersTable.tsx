@@ -44,6 +44,8 @@ interface UsersTableProps {
   loading: boolean
   rolesData?: any[]
   businessesData?: any[]
+  departmentsData?: any[]
+  designationsData?: any[]
 }
 
 const UsersTable = ({
@@ -53,7 +55,9 @@ const UsersTable = ({
   pageCount,
   loading,
   rolesData = [],
-  businessesData = []
+  businessesData = [],
+  departmentsData = [],
+  designationsData = []
 }: UsersTableProps) => {
   const { data: session } = useSession()
   const isSuperAdmin = session?.user?.is_super_admin
@@ -179,6 +183,22 @@ const UsersTable = ({
         header: 'Role',
         cell: ({ row }) => <Typography>{row?.original?.role?.name || 'N/A'}</Typography>
       }),
+      columnHelper.accessor('dep_id', {
+        header: 'Department',
+        cell: ({ row }) => {
+          const depId = row?.original?.dep_id
+          const department = departmentsData.find((d: any) => d.id === depId)
+          return <Typography className='text-xs'>{department?.name || 'N/A'}</Typography>
+        }
+      }),
+      columnHelper.accessor('des_id', {
+        header: 'Designation',
+        cell: ({ row }) => {
+          const desId = row?.original?.des_id
+          const designation = designationsData.find((d: any) => d.id === desId)
+          return <Typography className='text-xs'>{designation?.name || 'N/A'}</Typography>
+        }
+      }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => (
@@ -223,7 +243,7 @@ const UsersTable = ({
         enableSorting: false
       })
     ],
-    [onDeleteUser, handleStatusChange, onEditItem, onResetPasswordClick]
+    [onDeleteUser, handleStatusChange, onEditItem, onResetPasswordClick, departmentsData, designationsData]
   )
 
   const onDataChange = useCallback((data: any) => {
@@ -292,6 +312,8 @@ const UsersTable = ({
                   onDataChange: onDataChange,
                   roles: rolesData,
                   businesses: businessesData,
+                  departments: departmentsData,
+                  designations: designationsData,
                   currentBId: currentBId
                 }}
               />
@@ -314,6 +336,8 @@ const UsersTable = ({
         onDataChange={onDataChange}
         roles={rolesData}
         businesses={businessesData}
+        departments={departmentsData}
+        designations={designationsData}
         currentBId={currentBId}
       />
       <UpdatePasswordDialog

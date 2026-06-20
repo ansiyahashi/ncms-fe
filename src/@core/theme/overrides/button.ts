@@ -29,6 +29,9 @@ const button: Theme['components'] = {
     }
   },
   MuiButton: {
+    defaultProps: {
+      size: 'small'
+    },
     styleOverrides: {
       root: ({ theme, ownerState }) => ({
         variants: [

@@ -668,3 +668,278 @@ export async function deleteAssetStatus(variables: any, path?: string) {
 
   return { errors: res?.errors || { message: 'Failed to delete Asset Status' } }
 }
+
+// ----------------------------------------------------
+// DEPARTMENTS ACTIONS
+// ----------------------------------------------------
+function formatDepartment(item: any) {
+  if (!item) return null
+
+  return {
+    id: item._id,
+    b_id: item.b_id?._id || item.b_id,
+    name: item.name,
+    description: item.desc || '',
+    status: item.is_active,
+    created_at: item.created_at,
+    updated_at: item.updated_at
+  }
+}
+
+export async function getAllDepartments(variables: any) {
+  const search = variables?.search || ''
+  const limit = variables?.size || 10
+  const page = variables?.page || 1
+  const b_id = variables?.b_id || ''
+
+  let url = `/departments?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}&paginate=true`
+
+  if (b_id) {
+    url += `&b_id=${encodeURIComponent(b_id)}`
+  }
+
+  const res = await getRequest(url)
+
+  if (res?.data) {
+    const rawData = Array.isArray(res.data) ? res.data : (res.data as any)?.data || []
+    const mapped = rawData.map((item: any) => formatDepartment(item))
+
+    return {
+      data: {
+        departments: {
+          data: mapped,
+          totalData: res.pagination?.total || 0,
+          totalPages: res.pagination?.totalPages || 0,
+          currentPage: (res.pagination?.page || 1) - 1,
+          errors: undefined
+        }
+      }
+    }
+  }
+
+  return {
+    data: {
+      departments: {
+        data: [],
+        totalData: 0,
+        totalPages: 0,
+        currentPage: 0,
+        errors: res?.errors || { message: 'Failed to fetch Departments' }
+      }
+    },
+    errors: res?.errors || { message: 'Failed to fetch Departments' }
+  }
+}
+
+export async function createDepartment(variables: any, path?: string) {
+  const body = {
+    b_id: variables?.configData?.b_id,
+    name: variables?.configData?.name,
+    desc: variables?.configData?.description,
+    is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
+  }
+
+  const res = await postServerRequest('/departments', {
+    method: 'POST',
+    body,
+    path
+  })
+
+  if (res?.data) {
+    return { data: { createDepartment: formatDepartment(res.data) } }
+  }
+
+  return { errors: res?.errors || { message: 'Failed to create Department' } }
+}
+
+export async function updateDepartment(variables: any, path?: string) {
+  const id = variables?.configData?.id
+  const b_id = variables?.configData?.b_id
+
+  const body = {
+    name: variables?.configData?.name,
+    desc: variables?.configData?.description,
+    is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
+  }
+
+  let url = `/departments/${id}`
+
+  if (b_id) {
+    url += `?b_id=${encodeURIComponent(b_id)}`
+  }
+
+  const res = await postServerRequest(url, {
+    method: 'PUT',
+    body,
+    path
+  })
+
+  if (res?.data) {
+    return { data: { updateDepartment: formatDepartment(res.data) } }
+  }
+
+  return { errors: res?.errors || { message: 'Failed to update Department' } }
+}
+
+export async function deleteDepartment(variables: any, path?: string) {
+  const id = variables?.id
+  const b_id = variables?.b_id
+
+  let url = `/departments/${id}`
+
+  if (b_id) {
+    url += `?b_id=${encodeURIComponent(b_id)}`
+  }
+
+  const res = await postServerRequest(url, {
+    method: 'DELETE',
+    path
+  })
+
+  if (res?.status === 200 || res?.data) {
+    return { data: { deleteDepartment: { id } } }
+  }
+
+  return { errors: res?.errors || { message: 'Failed to delete Department' } }
+}
+
+// ----------------------------------------------------
+// DESIGNATIONS ACTIONS
+// ----------------------------------------------------
+function formatDesignation(item: any) {
+  if (!item) return null
+
+  return {
+    id: item._id,
+    b_id: item.b_id?._id || item.b_id,
+    dep_id: item.dep_id?._id || item.dep_id || null,
+    name: item.name,
+    description: item.desc || '',
+    status: item.is_active,
+    created_at: item.created_at,
+    updated_at: item.updated_at
+  }
+}
+
+export async function getAllDesignations(variables: any) {
+  const search = variables?.search || ''
+  const limit = variables?.size || 10
+  const page = variables?.page || 1
+  const b_id = variables?.b_id || ''
+  const dep_id = variables?.dep_id || ''
+
+  let url = `/designations?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}&paginate=true`
+
+  if (b_id) {
+    url += `&b_id=${encodeURIComponent(b_id)}`
+  }
+  if (dep_id) {
+    url += `&dep_id=${encodeURIComponent(dep_id)}`
+  }
+
+  const res = await getRequest(url)
+
+  if (res?.data) {
+    const rawData = Array.isArray(res.data) ? res.data : (res.data as any)?.data || []
+    const mapped = rawData.map((item: any) => formatDesignation(item))
+
+    return {
+      data: {
+        designations: {
+          data: mapped,
+          totalData: res.pagination?.total || 0,
+          totalPages: res.pagination?.totalPages || 0,
+          currentPage: (res.pagination?.page || 1) - 1,
+          errors: undefined
+        }
+      }
+    }
+  }
+
+  return {
+    data: {
+      designations: {
+        data: [],
+        totalData: 0,
+        totalPages: 0,
+        currentPage: 0,
+        errors: res?.errors || { message: 'Failed to fetch Designations' }
+      }
+    },
+    errors: res?.errors || { message: 'Failed to fetch Designations' }
+  }
+}
+
+export async function createDesignation(variables: any, path?: string) {
+  const body = {
+    b_id: variables?.configData?.b_id,
+    dep_id: variables?.configData?.dep_id || null,
+    name: variables?.configData?.name,
+    desc: variables?.configData?.description,
+    is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
+  }
+
+  const res = await postServerRequest('/designations', {
+    method: 'POST',
+    body,
+    path
+  })
+
+  if (res?.data) {
+    return { data: { createDesignation: formatDesignation(res.data) } }
+  }
+
+  return { errors: res?.errors || { message: 'Failed to create Designation' } }
+}
+
+export async function updateDesignation(variables: any, path?: string) {
+  const id = variables?.configData?.id
+  const b_id = variables?.configData?.b_id
+
+  const body = {
+    dep_id: variables?.configData?.dep_id || null,
+    name: variables?.configData?.name,
+    desc: variables?.configData?.description,
+    is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
+  }
+
+  let url = `/designations/${id}`
+
+  if (b_id) {
+    url += `?b_id=${encodeURIComponent(b_id)}`
+  }
+
+  const res = await postServerRequest(url, {
+    method: 'PUT',
+    body,
+    path
+  })
+
+  if (res?.data) {
+    return { data: { updateDesignation: formatDesignation(res.data) } }
+  }
+
+  return { errors: res?.errors || { message: 'Failed to update Designation' } }
+}
+
+export async function deleteDesignation(variables: any, path?: string) {
+  const id = variables?.id
+  const b_id = variables?.b_id
+
+  let url = `/designations/${id}`
+
+  if (b_id) {
+    url += `?b_id=${encodeURIComponent(b_id)}`
+  }
+
+  const res = await postServerRequest(url, {
+    method: 'DELETE',
+    path
+  })
+
+  if (res?.status === 200 || res?.data) {
+    return { data: { deleteDesignation: { id } } }
+  }
+
+  return { errors: res?.errors || { message: 'Failed to delete Designation' } }
+}

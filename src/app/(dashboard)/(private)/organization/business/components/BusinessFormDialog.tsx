@@ -11,11 +11,8 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import { CircularProgress, FormHelperText, Checkbox, FormControlLabel, Divider, InputAdornment } from '@mui/material'
+import Box from '@mui/material/Box'
+import { CircularProgress, FormHelperText, Switch, Divider, InputAdornment, FormControl } from '@mui/material'
 import { boolean, nonEmpty, object, pipe, string, email, custom, minLength, forward, partialCheck } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
@@ -143,6 +140,8 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
     }
   }, [details, reset, open])
 
+
+
   const onSubmit = async (params: any) => {
     try {
       const payload = {
@@ -182,24 +181,39 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
     <Dialog
       open={open}
       maxWidth='sm'
+      fullWidth
       scroll='body'
       onClose={() => {
         setOpen(false)
         reset(defaultValues)
       }}
+      PaperProps={{
+        sx: {
+          borderRadius: '16px',
+          padding: '8px'
+        }
+      }}
     >
-      <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
-        {details ? 'Update' : 'Add a New'} Business
-        <Typography component='span' className='flex flex-col text-center text-textSecondary'>
-          Configure primary organization profile and plan levels
+      <DialogTitle variant='h4' className='flex gap-1 flex-col text-center pt-8 pb-4 px-6 sm:px-16'>
+        <span className='font-bold text-textPrimary'>
+          {details ? 'Update' : 'New'} Business Workspace
+        </span>
+        <Typography variant='body2' className='text-textSecondary'>
+          Configure primary organization profile, administrative credentials, and subscription levels
         </Typography>
       </DialogTitle>
+
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent className='pbs-1 sm:pbe-6 sm:pli-16'>
-          <IconButton onClick={() => setOpen(false)} className='absolute block-start-4 inline-end-4'>
-            <i className='ri-close-line text-textSecondary' />
+        <DialogContent className='pt-2 pb-6 px-6 sm:px-16 flex flex-col gap-5'>
+          <IconButton
+            onClick={() => setOpen(false)}
+            className='absolute top-4 right-4 hover:bg-actionHover rounded-full transition-colors'
+          >
+            <i className='ri-close-line text-textSecondary text-xl' />
           </IconButton>
+
           <Grid container spacing={5}>
+            {/* Business Name */}
             <Grid size={12}>
               <FormControl fullWidth>
                 <Controller
@@ -213,12 +227,19 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       onChange={onChange}
                       placeholder='Please enter business name'
                       error={Boolean(errors?.name)}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
                 {errors?.name && <FormHelperText sx={{ color: 'error.main' }}>{errors?.name?.message}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Business Email */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
@@ -232,6 +253,11 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       onChange={onChange}
                       placeholder='Please enter business email'
                       error={Boolean(errors?.email)}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
@@ -240,23 +266,10 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                 )}
               </FormControl>
             </Grid>
-            <Grid size={6}>
-              <FormControl fullWidth error={Boolean(errors?.plan)}>
-                <InputLabel>Subscription Plan</InputLabel>
-                <Controller
-                  name='plan'
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <Select value={value} onChange={onChange} label='Subscription Plan'>
-                      <MenuItem value='free'>Free Plan</MenuItem>
-                      <MenuItem value='pro'>Pro Plan</MenuItem>
-                      <MenuItem value='enterprise'>Enterprise Plan</MenuItem>
-                    </Select>
-                  )}
-                />
-                {errors?.plan && <FormHelperText>{errors?.plan?.message}</FormHelperText>}
-              </FormControl>
-            </Grid>
+
+
+
+            {/* Contact Person */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
@@ -268,11 +281,18 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       label='Contact Person'
                       onChange={onChange}
                       placeholder='Contact Person Name'
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Phone */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
@@ -284,11 +304,18 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       label='Phone Number'
                       onChange={onChange}
                       placeholder='Business Phone Number'
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Business Type */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
@@ -300,11 +327,18 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       label='Business Type'
                       onChange={onChange}
                       placeholder='e.g., Retail, Manufacturing'
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Industry */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
@@ -316,11 +350,18 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       label='Industry'
                       onChange={onChange}
                       placeholder='e.g., Healthcare, Real Estate'
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Brand name */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
@@ -332,22 +373,41 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       label='Common/Brand Name'
                       onChange={onChange}
                       placeholder='e.g., Gateco Stores'
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Country */}
             <Grid size={6}>
               <FormControl fullWidth>
                 <Controller
                   name='country'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <TextField value={value} label='Country' onChange={onChange} placeholder='Country Location' />
+                    <TextField
+                      value={value}
+                      label='Country'
+                      onChange={onChange}
+                      placeholder='Country Location'
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
+                    />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Physical Address */}
             <Grid size={12}>
               <FormControl fullWidth>
                 <Controller
@@ -361,39 +421,56 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       placeholder='Business Address'
                       multiline
                       rows={2}
+                      slotProps={{
+                        input: {
+                          sx: { borderRadius: '8px' }
+                        }
+                      }}
                     />
                   )}
                 />
               </FormControl>
             </Grid>
+
+            {/* Switch Toggle status Row */}
             <Grid size={12}>
-              <FormControlLabel
-                control={
-                  <Controller
-                    name='status'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Checkbox checked={value} onChange={e => onChange(e.target.checked)} />
-                    )}
-                  />
-                }
-                label='Active'
-              />
+              <Box className='flex items-center justify-between p-4 rounded-xl border border-divider bg-backgroundDefault/50'>
+                <Box className='flex flex-col gap-0.5'>
+                  <Typography className='text-sm font-bold text-textPrimary'>Workspace Status</Typography>
+                  <Typography className='text-[10px] text-textSecondary'>
+                    Toggle to make this organization active and allow access to all operations.
+                  </Typography>
+                </Box>
+                <Controller
+                  name='status'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Switch
+                      checked={value}
+                      onChange={e => onChange(e.target.checked)}
+                      color='primary'
+                    />
+                  )}
+                />
+              </Box>
             </Grid>
           </Grid>
         </DialogContent>
+
+        {/* Credentials creation details when adding new business */}
         {!details?.id && (
           <>
-            <Divider className='mlb-4' />
-            <DialogTitle variant='h4' className='text-center pbs-0'>
-              Admin Details
-              <Typography component='span' className='flex flex-col text-center text-textSecondary'>
-                Specify administrative credentials for the new business
+            <Divider className='my-4' />
+            <DialogTitle variant='h4' className='text-center pt-0 pb-2 px-6 sm:px-16'>
+              <span className='font-bold text-textPrimary text-lg'>Admin Account Setup</span>
+              <Typography variant='body2' className='text-textSecondary'>
+                Specify administrative credentials to manage this new business workspace
               </Typography>
             </DialogTitle>
 
-            <DialogContent className='pbs-1 sm:pbe-6 sm:pli-16'>
+            <DialogContent className='pt-2 pb-6 px-6 sm:px-16 flex flex-col gap-5'>
               <Grid container spacing={5}>
+                {/* User name */}
                 <Grid size={6}>
                   <FormControl fullWidth>
                     <Controller
@@ -406,6 +483,11 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                           onChange={onChange}
                           placeholder='Enter user name'
                           error={Boolean(errors?.user_name)}
+                          slotProps={{
+                            input: {
+                              sx: { borderRadius: '8px' }
+                            }
+                          }}
                         />
                       )}
                     />
@@ -414,6 +496,8 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                     )}
                   </FormControl>
                 </Grid>
+
+                {/* User email */}
                 <Grid size={6}>
                   <FormControl fullWidth>
                     <Controller
@@ -426,6 +510,11 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                           onChange={onChange}
                           placeholder='Enter email'
                           error={Boolean(errors?.user_email)}
+                          slotProps={{
+                            input: {
+                              sx: { borderRadius: '8px' }
+                            }
+                          }}
                         />
                       )}
                     />
@@ -434,6 +523,8 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                     )}
                   </FormControl>
                 </Grid>
+
+                {/* Password */}
                 <Grid size={6}>
                   <FormControl fullWidth>
                     <Controller
@@ -449,6 +540,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                           error={Boolean(errors?.password)}
                           slotProps={{
                             input: {
+                              sx: { borderRadius: '8px' },
                               endAdornment: (
                                 <InputAdornment position='end'>
                                   <IconButton
@@ -471,6 +563,8 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                     )}
                   </FormControl>
                 </Grid>
+
+                {/* Confirm password */}
                 <Grid size={6}>
                   <FormControl fullWidth>
                     <Controller
@@ -486,6 +580,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                           error={Boolean(errors?.confirm_password)}
                           slotProps={{
                             input: {
+                              sx: { borderRadius: '8px' },
                               endAdornment: (
                                 <InputAdornment position='end'>
                                   <IconButton
@@ -512,19 +607,29 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
             </DialogContent>
           </>
         )}
-        <DialogActions className='sm:pli-16 sm:pbe-12'>
-          <Button type='submit' variant='contained' color='primary' disabled={isSubmitting}>
-            {isSubmitting && <CircularProgress size={20} className='mie-2' />}
-            {details?.id ? 'Update' : 'Add'} Business
-          </Button>
+
+        <DialogActions className='px-6 pb-8 sm:px-16 flex gap-3 justify-end'>
           <Button
             variant='outlined'
             onClick={() => {
               setOpen(false)
               reset(defaultValues)
             }}
+            sx={{ borderRadius: '8px', px: 6 }}
+            className='hover:bg-actionHover transition-all'
           >
             Cancel
+          </Button>
+          <Button
+            type='submit'
+            variant='contained'
+            color='primary'
+            disabled={isSubmitting}
+            sx={{ borderRadius: '8px', px: 6 }}
+            className='hover:opacity-90 transition-all font-semibold'
+          >
+            {isSubmitting && <CircularProgress size={20} className='me-2' />}
+            {details?.id ? 'Update' : 'Add'} Business
           </Button>
         </DialogActions>
       </form>
