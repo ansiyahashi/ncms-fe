@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/libs/auth'
 import type { PageProps } from '@/types/pageTypes'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
+import { getAllClients } from '@/app/(dashboard)/(private)/organization/client/api/client.action'
 import DepartmentsList from '../components/DepartmentsList'
 import { getAllDepartments } from '../api/master-config.action'
 import Box from '@mui/material/Box'
@@ -14,18 +15,23 @@ export default async function DepartmentsPage({ searchParams }: PageProps) {
       q: '',
       page: '0',
       'per-page': '10',
-      b_id: ''
+      b_id: '',
+      client_id: ''
     }))
 
   const query = params.q || ''
   const perPageCount = Number(params['per-page'] ?? 10)
   const pageCount = Number(params.page ?? 0)
   const b_id = params.b_id || ''
+  const client_id = params.client_id || ''
 
   const session = await getServerSession(authOptions)
   const isSuperAdmin = session?.user?.is_super_admin || false
 
-  const res = await getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id })
+  const clientsRes = (isSuperAdmin && !b_id) ? null : await getAllClients({ size: 1000, b_id })
+  const clientsData = clientsRes?.data?.clients?.data || []
+
+  const res = await getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id, client_id })
   const listData = res?.data?.departments?.data || []
   const pagination = {
     totalData: res?.data?.departments?.totalData || 0,
@@ -36,8 +42,8 @@ export default async function DepartmentsPage({ searchParams }: PageProps) {
   const businessesRes = isSuperAdmin ? await getAllBusinesses({ size: 1000 }) : null
   const businessesData = businessesRes?.data?.businesses?.data || []
 
-  if (res?.errors || (isSuperAdmin && businessesRes?.errors)) {
-    const error = res?.errors || businessesRes?.errors
+  if (res?.errors || (isSuperAdmin && businessesRes?.errors) || (clientsRes && clientsRes.errors)) {
+    const error = res?.errors || businessesRes?.errors || clientsRes?.errors
     throw new Error(error?.message || 'Failed to fetch Departments data.')
   }
 
@@ -59,6 +65,7 @@ export default async function DepartmentsPage({ searchParams }: PageProps) {
         pageCount={pageCount}
         loading={false}
         businessesData={businessesData}
+        clientsData={clientsData}
         isSuperAdmin={isSuperAdmin}
       />
     </Box>

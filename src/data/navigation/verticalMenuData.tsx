@@ -11,6 +11,42 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
   },
   {
     isSection: true,
+    label: 'Organization Setup',
+    children: [
+      {
+        label: 'Business Profile',
+        href: '/organization/business',
+        icon: 'ri-building-line',
+        permission: PERMISSIONS.BUSINESS
+      },
+      {
+        label: 'Clients',
+        href: '/organization/client',
+        icon: 'ri-briefcase-line',
+        permission: PERMISSIONS.CLIENT
+      },
+      {
+        label: 'Departments',
+        href: '/master-config/departments',
+        icon: 'ri-community-line',
+        permission: PERMISSIONS.DEPARTMENT
+      },
+      {
+        label: 'Designations',
+        href: '/master-config/designations',
+        icon: 'ri-briefcase-line',
+        permission: PERMISSIONS.DESIGNATION
+      },
+      {
+        label: 'Approval Workflows',
+        href: '/organization/approvals',
+        icon: 'ri-check-double-line',
+        permission: PERMISSIONS.APPROVAL
+      }
+    ]
+  },
+  {
+    isSection: true,
     label: 'Master Config',
     children: [
       {
@@ -42,18 +78,6 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
         href: '/master-config/asset-statuses',
         icon: 'ri-checkbox-circle-line',
         permission: PERMISSIONS.ASSET_STATUS
-      },
-      {
-        label: 'Departments',
-        href: '/master-config/departments',
-        icon: 'ri-community-line',
-        permission: PERMISSIONS.DEPARTMENT
-      },
-      {
-        label: 'Designations',
-        href: '/master-config/designations',
-        icon: 'ri-briefcase-line',
-        permission: PERMISSIONS.DESIGNATION
       }
     ]
   },
@@ -85,31 +109,6 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
         href: '/permission',
         icon: 'ri-shield-keyhole-line',
         permission: PERMISSIONS.PERMISSION
-      }
-    ]
-  },
-  {
-    isSection: true,
-    label: 'Organization Setup',
-    children: [
-      {
-        label: 'Business Profile',
-        href: '/organization/business',
-        icon: 'ri-building-line',
-        permission: PERMISSIONS.BUSINESS
-      },
-      {
-        label: 'Clients',
-        href: '/organization/client',
-        icon: 'ri-briefcase-line',
-        permission: PERMISSIONS.CLIENT
-      },
-
-      {
-        label: 'Approval Workflows',
-        href: '/organization/approvals',
-        icon: 'ri-check-double-line',
-        permission: PERMISSIONS.APPROVAL
       }
     ]
   },

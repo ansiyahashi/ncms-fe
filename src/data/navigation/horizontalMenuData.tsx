@@ -58,9 +58,15 @@ const horizontalMenuData = (): HorizontalMenuDataType[] => [
       },
       {
         label: 'Departments',
-        href: '/organization/department',
-        icon: 'ri-group-line',
+        href: '/master-config/departments',
+        icon: 'ri-community-line',
         permission: PERMISSIONS.DEPARTMENT
+      },
+      {
+        label: 'Designations',
+        href: '/master-config/designations',
+        icon: 'ri-briefcase-line',
+        permission: PERMISSIONS.DESIGNATION
       },
       {
         label: 'Approval Workflows',

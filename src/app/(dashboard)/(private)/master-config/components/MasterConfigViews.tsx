@@ -32,6 +32,7 @@ interface MasterConfigViewsProps {
   loading: boolean
   businessesData?: any[]
   departmentsData?: any[]
+  clientsData?: any[]
   isSuperAdmin?: boolean
 }
 
@@ -99,6 +100,7 @@ const MasterConfigViews = ({
   loading,
   businessesData = [],
   departmentsData = [],
+  clientsData = [],
   isSuperAdmin = false
 }: MasterConfigViewsProps) => {
   const router = useRouter()
@@ -317,6 +319,7 @@ const MasterConfigViews = ({
                 pageCount={pageCount}
                 loading={loading}
                 businessesData={businessesData}
+                clientsData={clientsData}
                 isSuperAdmin={isSuperAdmin}
               />
             )}

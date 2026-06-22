@@ -11,6 +11,7 @@ import {
 } from './api/master-config.action'
 import { authOptions } from '@/libs/auth'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
+import { getAllClients } from '@/app/(dashboard)/(private)/organization/client/api/client.action'
 
 interface PageProps {
   searchParams: Promise<{
@@ -19,6 +20,7 @@ interface PageProps {
     page?: string
     'per-page'?: string
     b_id?: string
+    client_id?: string
   }>
 }
 
@@ -29,7 +31,8 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
       q: '',
       page: '0',
       'per-page': '10',
-      b_id: ''
+      b_id: '',
+      client_id: ''
     }))
 
   const activeView = params.view || 'cost-centers'
@@ -37,6 +40,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
   const perPageCount = Number(params['per-page'] ?? 10)
   const pageCount = Number(params.page ?? 0)
   const b_id = params.b_id || ''
+  const client_id = params.client_id || ''
 
   const session = await getServerSession(authOptions)
   const isSuperAdmin = session?.user?.is_super_admin || false
@@ -45,6 +49,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
   let pagination = { totalData: 0, totalPages: 0, currentPage: 0 }
   let errorRes: any = null
   let departmentsData: any[] = []
+  let clientsData: any[] = []
 
   // Fetch target view data on the server
   switch (activeView) {
@@ -115,7 +120,10 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     }
 
     case 'departments': {
-      const res = await getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id })
+      const [res, clientsRes] = await Promise.all([
+        getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id, client_id }),
+        (isSuperAdmin && !b_id) ? Promise.resolve(null) : getAllClients({ size: 1000, b_id })
+      ])
 
       viewData = res?.data?.departments?.data || []
       pagination = {
@@ -123,7 +131,8 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
         totalPages: res?.data?.departments?.totalPages || 0,
         currentPage: res?.data?.departments?.currentPage || 0
       }
-      errorRes = res?.errors
+      errorRes = res?.errors || clientsRes?.errors
+      clientsData = clientsRes?.data?.clients?.data || []
 
       break
     }
@@ -167,6 +176,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
       loading={false}
       businessesData={businessesData}
       departmentsData={departmentsData}
+      clientsData={clientsData}
       isSuperAdmin={isSuperAdmin}
     />
   )

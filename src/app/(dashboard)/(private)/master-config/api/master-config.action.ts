@@ -678,6 +678,7 @@ function formatDepartment(item: any) {
   return {
     id: item._id,
     b_id: item.b_id?._id || item.b_id,
+    client_id: item.client_id?._id || item.client_id || null,
     name: item.name,
     description: item.desc || '',
     status: item.is_active,
@@ -691,11 +692,15 @@ export async function getAllDepartments(variables: any) {
   const limit = variables?.size || 10
   const page = variables?.page || 1
   const b_id = variables?.b_id || ''
+  const client_id = variables?.client_id || ''
 
   let url = `/departments?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}&paginate=true`
 
   if (b_id) {
     url += `&b_id=${encodeURIComponent(b_id)}`
+  }
+  if (client_id) {
+    url += `&client_id=${encodeURIComponent(client_id)}`
   }
 
   const res = await getRequest(url)
@@ -734,6 +739,7 @@ export async function getAllDepartments(variables: any) {
 export async function createDepartment(variables: any, path?: string) {
   const body = {
     b_id: variables?.configData?.b_id,
+    client_id: variables?.configData?.client_id || null,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
@@ -757,6 +763,7 @@ export async function updateDepartment(variables: any, path?: string) {
   const b_id = variables?.configData?.b_id
 
   const body = {
+    client_id: variables?.configData?.client_id || null,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true

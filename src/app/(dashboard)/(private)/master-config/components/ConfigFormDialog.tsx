@@ -52,6 +52,7 @@ const schema = object({
   description: optional(string()),
   b_id: optional(string()),
   dep_id: optional(string()),
+  client_id: optional(string()),
   status: boolean()
 })
 
@@ -62,6 +63,7 @@ const defaultValues = {
   description: '',
   b_id: '',
   dep_id: '',
+  client_id: '',
   status: true
 }
 
@@ -73,6 +75,7 @@ interface ConfigFormDialogProps {
   onDataChange: (data: any) => void
   businessesData?: any[]
   departmentsData?: any[]
+  clientsData?: any[]
   isSuperAdmin?: boolean
 }
 
@@ -94,6 +97,7 @@ const ConfigFormDialog = ({
   onDataChange,
   businessesData = [],
   departmentsData = [],
+  clientsData = [],
   isSuperAdmin = false
 }: ConfigFormDialogProps) => {
 
@@ -103,12 +107,28 @@ const ConfigFormDialog = ({
     handleSubmit,
     reset,
     setError,
+    watch,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm({
     defaultValues,
     mode: 'onChange',
     resolver: valibotResolver(schema)
   })
+
+  const watchedBId = watch('b_id')
+  const effectiveBId = details?.b_id || watchedBId
+
+  const filteredClients = clientsData.filter((c: any) => {
+    if (!isSuperAdmin) return true
+    return String(c.b_id) === String(effectiveBId)
+  })
+
+  useEffect(() => {
+    if (!details?.id && open) {
+      setValue('client_id', '')
+    }
+  }, [watchedBId, details, open, setValue])
 
   useEffect(() => {
     if (details) {
@@ -272,6 +292,40 @@ const ConfigFormDialog = ({
                     )}
                   />
                   {errors?.b_id && <FormHelperText>{errors?.b_id?.message}</FormHelperText>}
+                </FormControl>
+              </Grid>
+            )}
+
+            {/* Client Selection for Department */}
+            {type === 'departments' && (
+              <Grid size={12}>
+                <FormControl fullWidth error={Boolean(errors?.client_id)}>
+                  <InputLabel id='form-client-select-label'>Client</InputLabel>
+                  <Controller
+                    name='client_id'
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        labelId='form-client-select-label'
+                        id='form-client-select'
+                        value={value ?? ''}
+                        label='Client'
+                        onChange={onChange}
+                        sx={{ borderRadius: '8px' }}
+                        disabled={isSuperAdmin && !effectiveBId}
+                      >
+                        <MenuItem value=''>
+                          <em>None (Direct Business Department)</em>
+                        </MenuItem>
+                        {filteredClients.map((client: any) => (
+                          <MenuItem key={client.id} value={client.id}>
+                            {client.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                  {errors?.client_id && <FormHelperText>{errors?.client_id?.message}</FormHelperText>}
                 </FormControl>
               </Grid>
             )}

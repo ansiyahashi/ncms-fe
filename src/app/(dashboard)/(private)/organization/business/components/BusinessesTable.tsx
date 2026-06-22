@@ -54,7 +54,6 @@ const BusinessesTable = ({
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [openDialog, setOpenDialog] = useState(false)
 
-
   useEffect(() => {
     setData(initialData)
   }, [initialData])
@@ -174,8 +173,6 @@ const BusinessesTable = ({
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center gap-0.5'>
-
-
             <RoleGuard allowedPermissions={[PERMISSIONS.BUSINESS_DELETE]}>
               <IconButton size='small' onClick={() => onDeleteBusiness(row?.original?.id)} color='error'>
                 <i className='ri-delete-bin-7-line text-textSecondary' />

@@ -35,6 +35,7 @@ interface DepartmentsListProps {
   pageCount: number
   loading: boolean
   businessesData?: any[]
+  clientsData?: any[]
   isSuperAdmin?: boolean
 }
 
@@ -45,6 +46,7 @@ const DepartmentsList = ({
   pageCount,
   loading,
   businessesData = [],
+  clientsData = [],
   isSuperAdmin = false
 }: DepartmentsListProps) => {
   const router = useRouter()
@@ -56,6 +58,7 @@ const DepartmentsList = ({
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
 
   const currentBId = searchParams.get('b_id') || ''
+  const currentClientId = searchParams.get('client_id') || ''
 
   useEffect(() => {
     setData(initialData)
@@ -70,12 +73,35 @@ const DepartmentsList = ({
           params: searchParams.toString(),
           key: 'b_id',
           value: bId,
+          keysToRemove: ['page', 'client_id']
+        })
+      } else {
+        newUrl = removeKeysFromQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['b_id', 'page', 'client_id']
+        })
+      }
+
+      router.push(newUrl, { scroll: false })
+    },
+    [searchParams, router]
+  )
+
+  const handleClientChange = useCallback(
+    (clientId: string) => {
+      let newUrl = ''
+
+      if (clientId) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'client_id',
+          value: clientId,
           keysToRemove: ['page']
         })
       } else {
         newUrl = removeKeysFromQuery({
           params: searchParams.toString(),
-          keysToRemove: ['b_id', 'page']
+          keysToRemove: ['client_id', 'page']
         })
       }
 
@@ -167,6 +193,25 @@ const DepartmentsList = ({
           )
         }
       }),
+      columnHelper.accessor('client_id', {
+        header: 'Client',
+        cell: ({ row }) => {
+          const clientId = row?.original?.client_id
+          if (!clientId) {
+            return (
+              <Typography color='text.secondary' className='text-xs italic'>
+                Direct Business
+              </Typography>
+            )
+          }
+          const client = clientsData.find((c: any) => c.id === clientId)
+          return (
+            <Typography color='text.secondary' className='text-xs'>
+              {client?.name || 'Unknown Client'}
+            </Typography>
+          )
+        }
+      }),
       columnHelper.accessor('description', {
         header: 'Description',
         cell: ({ row }) => (
@@ -225,7 +270,7 @@ const DepartmentsList = ({
         enableSorting: false
       })
     ],
-    [onDeleteDepartment, handleStatusChange, onEditItem]
+    [onDeleteDepartment, handleStatusChange, onEditItem, clientsData]
   )
 
   const showAddButton = true
@@ -255,6 +300,27 @@ const DepartmentsList = ({
                   {businessesData.map((business: any) => (
                     <MenuItem key={business.id} value={business.id}>
                       {business.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            {(isSuperAdmin || clientsData.length > 0) && (
+              <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }} disabled={isSuperAdmin && !currentBId}>
+                <InputLabel id='client-select-label'>Client</InputLabel>
+                <Select
+                  labelId='client-select-label'
+                  id='client-select'
+                  value={currentClientId}
+                  label='Client'
+                  onChange={e => handleClientChange(e.target.value as string)}
+                >
+                  <MenuItem value=''>All Departments</MenuItem>
+                  <MenuItem value='null'>Direct Business Departments</MenuItem>
+                  {clientsData.map((client: any) => (
+                    <MenuItem key={client.id} value={client.id}>
+                      {client.name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -296,6 +362,7 @@ const DepartmentsList = ({
         details={selectedItem}
         onDataChange={handleDataChange}
         businessesData={businessesData}
+        clientsData={clientsData}
         isSuperAdmin={isSuperAdmin}
       />
     </>
