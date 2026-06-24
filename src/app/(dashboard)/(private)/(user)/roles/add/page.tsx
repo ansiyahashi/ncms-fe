@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { getAllPermissions } from '@/libs/actions/permissions.action'
 import RolesForm from '../components/RolesForm'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -16,7 +16,6 @@ import Box from '@mui/material/Box'
 import {
   CircularProgress,
   FormHelperText,
-  FormControlLabel,
   Switch,
   InputLabel,
   Select,
@@ -121,7 +120,8 @@ const ConfigFormDialog = ({
 
   const filteredClients = clientsData.filter((c: any) => {
     if (!isSuperAdmin) return true
-    return String(c.b_id) === String(effectiveBId)
+    
+return String(c.b_id) === String(effectiveBId)
   })
 
   useEffect(() => {

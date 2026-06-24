@@ -26,6 +26,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
   const res = await getAllClients({ search: query, size: perPageCount, page: pageCount + 1, b_id })
   
   const clientData = res?.data?.clients?.data || []
+
   const pagination = {
     totalData: res?.data?.clients?.totalData || 0,
     totalPages: res?.data?.clients?.totalPages || 0,
@@ -37,6 +38,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
 
   if (res?.errors || (isSuperAdmin && businessesRes?.errors)) {
     const error = res?.errors || businessesRes?.errors
+
     throw new Error(error?.message || 'Failed to fetch Clients data.')
   }
 

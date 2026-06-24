@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
-import { useSession } from 'next-auth/react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+
+import { useSession } from 'next-auth/react'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -69,11 +70,14 @@ const ClientsTable = ({
     const total = data.length
     const active = data.filter(c => c.status).length
     const inactive = total - active
-    return { total, active, inactive }
+
+    
+return { total, active, inactive }
   }, [data])
 
   const handleBusinessChange = useCallback((bId: string) => {
     let newUrl = ''
+
     if (bId) {
       newUrl = formUrlQuery({
         params: searchParams.toString(),
@@ -87,6 +91,7 @@ const ClientsTable = ({
         keysToRemove: ['b_id', 'page']
       })
     }
+
     router.push(newUrl, { scroll: false })
   }, [searchParams, router])
 

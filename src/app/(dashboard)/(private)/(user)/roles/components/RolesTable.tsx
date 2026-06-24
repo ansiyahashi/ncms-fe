@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
-import { useSession } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
+
+import { useSession } from 'next-auth/react'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -36,7 +37,6 @@ interface RolesTableProps {
   perPageCount: number
   pageCount: number
   loading: boolean
-  permissionData?: any[]
   businessesData?: any[]
 }
 
@@ -46,7 +46,6 @@ const RolesTable = ({
   perPageCount,
   pageCount,
   loading,
-  permissionData = [],
   businessesData = []
 }: RolesTableProps) => {
   const { data: session } = useSession()
@@ -64,6 +63,7 @@ const RolesTable = ({
 
   const handleBusinessChange = useCallback((bId: string) => {
     let newUrl = ''
+
     if (bId) {
       newUrl = formUrlQuery({
         params: searchParams.toString(),
@@ -77,6 +77,7 @@ const RolesTable = ({
         keysToRemove: ['b_id', 'page']
       })
     }
+
     router.push(newUrl, { scroll: false })
   }, [searchParams, router])
 

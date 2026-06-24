@@ -77,9 +77,6 @@ const ClientFormDialog = ({
   currentBId = '',
   isSuperAdmin = false
 }: ClientFormDialogProps) => {
-
-  const isEdit = !!details?.id
-
   const {
     control,
     handleSubmit,

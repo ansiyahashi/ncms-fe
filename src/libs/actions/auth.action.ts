@@ -1,6 +1,6 @@
 'use server'
 
-import { getRequest, postRequest } from '@/api'
+import { postRequest } from '@/api'
 import { postServerRequest } from '@/api/client'
 
 export async function login(email: string, password: string) {

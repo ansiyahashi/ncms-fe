@@ -159,20 +159,26 @@ const UsersFormDialog = ({
     if (selectedBId) {
       return roles.filter(role => role.b_id === selectedBId)
     }
+
     if (isSuperAdmin && !selectedBId) {
       return []
     }
-    return roles
+
+    
+return roles
   }, [roles, selectedBId, isSuperAdmin])
 
   const filteredDepartments = useMemo(() => {
     if (selectedBId) {
       return departments.filter(dep => dep.b_id === selectedBId)
     }
+
     if (isSuperAdmin && !selectedBId) {
       return []
     }
-    return departments
+
+    
+return departments
   }, [departments, selectedBId, isSuperAdmin])
 
   const selectedDepId = watch('dep_id')
@@ -193,6 +199,7 @@ const UsersFormDialog = ({
 
   const filteredDesignations = useMemo(() => {
     let list = designations
+
     if (selectedBId) {
       list = list.filter(des => des.b_id === selectedBId)
     } else if (isSuperAdmin && !selectedBId) {
@@ -204,7 +211,9 @@ const UsersFormDialog = ({
     } else {
       list = list.filter(des => !des.dep_id)
     }
-    return list
+
+    
+return list
   }, [designations, selectedBId, selectedDepId, isSuperAdmin])
 
   const onSubmit = async (params: any) => {

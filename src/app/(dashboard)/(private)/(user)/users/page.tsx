@@ -2,9 +2,8 @@ import { getServerSession } from 'next-auth'
 
 import { authOptions } from '@/libs/auth'
 import { getAllUsers } from './api/user.action'
-import { getAllRoles } from '../roles/api/role.action'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
-import { getAllDepartments, getAllDesignations } from '@/app/(dashboard)/(private)/master-config/api/master-config.action'
+import { getLookupRoles, getLookupDepartments, getLookupDesignations } from '@/libs/actions/lookup.action'
 import UsersTable from '@/app/(dashboard)/(private)/(user)/users/components/UsersTable'
 import type { PageProps } from '@/types/pageTypes'
 
@@ -27,17 +26,14 @@ export default async function UsersListPage({ searchParams }: PageProps) {
       b_id,
       role_id
     }),
-    getAllRoles({
-      size: 1000,
+    getLookupRoles({
       b_id
     }),
     isSuperAdmin ? getAllBusinesses({ size: 1000 }) : Promise.resolve(null),
-    getAllDepartments({
-      size: 1000,
+    getLookupDepartments({
       b_id
     }),
-    getAllDesignations({
-      size: 1000,
+    getLookupDesignations({
       b_id
     })
   ])

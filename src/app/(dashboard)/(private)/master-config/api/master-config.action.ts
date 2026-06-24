@@ -699,6 +699,7 @@ export async function getAllDepartments(variables: any) {
   if (b_id) {
     url += `&b_id=${encodeURIComponent(b_id)}`
   }
+
   if (client_id) {
     url += `&client_id=${encodeURIComponent(client_id)}`
   }
@@ -840,6 +841,7 @@ export async function getAllDesignations(variables: any) {
   if (b_id) {
     url += `&b_id=${encodeURIComponent(b_id)}`
   }
+
   if (dep_id) {
     url += `&dep_id=${encodeURIComponent(dep_id)}`
   }

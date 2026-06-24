@@ -33,6 +33,7 @@ export async function getAllRoles(variables: any) {
   const b_id = variables?.b_id || ''
 
   let url = `/roles?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`
+
   if (b_id) url += `&b_id=${encodeURIComponent(b_id)}`
 
   const res = await getRequest(url)

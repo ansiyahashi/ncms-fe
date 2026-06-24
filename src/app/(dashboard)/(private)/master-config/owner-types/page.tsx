@@ -1,12 +1,14 @@
 import { getServerSession } from 'next-auth'
 
+import Box from '@mui/material/Box'
+
+import Typography from '@mui/material/Typography'
+
 import { authOptions } from '@/libs/auth'
 import type { PageProps } from '@/types/pageTypes'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
 import OwnerTypesList from '../components/OwnerTypesList'
 import { getAllOwnerTypes } from '../api/master-config.action'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 
 export default async function OwnerTypesPage({ searchParams }: PageProps) {
   const params = await (searchParams ||
@@ -27,6 +29,7 @@ export default async function OwnerTypesPage({ searchParams }: PageProps) {
 
   const res = await getAllOwnerTypes({ search: query, size: perPageCount, page: pageCount + 1, b_id })
   const listData = res?.data?.ownerTypes?.data || []
+
   const pagination = {
     totalData: res?.data?.ownerTypes?.totalData || 0,
     totalPages: res?.data?.ownerTypes?.totalPages || 0,
@@ -38,6 +41,7 @@ export default async function OwnerTypesPage({ searchParams }: PageProps) {
 
   if (res?.errors || (isSuperAdmin && businessesRes?.errors)) {
     const error = res?.errors || businessesRes?.errors
+
     throw new Error(error?.message || 'Failed to fetch Owner Types data.')
   }
 

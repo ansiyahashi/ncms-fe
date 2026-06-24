@@ -179,6 +179,8 @@ export const ROUTE_PERMISSIONS = [
   { path: '/organization/department/[id]/edit', permission: PERMISSIONS.DEPARTMENT_EDIT },
 
   { path: '/organization/approvals', permission: PERMISSIONS.APPROVAL },
+  { path: '/organization/approvals/add', permission: PERMISSIONS.APPROVAL_CREATE },
+  { path: '/organization/approvals/[id]/edit', permission: PERMISSIONS.APPROVAL_EDIT },
 
   // Facility Management
   { path: '/facility/hierarchy', permission: PERMISSIONS.FACILITY },
