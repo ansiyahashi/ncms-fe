@@ -1,3 +1,7 @@
+import { redirect } from 'next/navigation'
+
+import { isRedirectError } from 'next/dist/client/components/redirect-error'
+
 import { getSession, signOut } from 'next-auth/react'
 import { getServerSession } from 'next-auth'
 
@@ -38,6 +42,16 @@ export async function getRequest<T = any>(url: string): Promise<ApiResponse<T>> 
     const body = await res.json().catch(() => ({}))
 
     if (!res.ok) {
+      if (
+        res.status === 401 ||
+        body?.message === 'Token revoked' ||
+        body?.errors?.message === 'Token revoked' ||
+        body?.errorCode === 'UNAUTHENTICATED' ||
+        body?.errors?.errorCode === 'UNAUTHENTICATED'
+      ) {
+        redirect('/api/auth/revoked-signout')
+      }
+
       return {
         status: res.status,
         errors: body
@@ -50,6 +64,8 @@ export async function getRequest<T = any>(url: string): Promise<ApiResponse<T>> 
       pagination: body.pagination || undefined
     }
   } catch (error: any) {
+    if (isRedirectError(error)) throw error
+
     return {
       errors: {
         message: error?.message || 'Network error occurred.'
@@ -80,6 +96,16 @@ export async function postRequest<T = any>(url: string, body: any): Promise<ApiR
     const resBody = await res.json().catch(() => ({}))
 
     if (!res.ok) {
+      if (
+        res.status === 401 ||
+        resBody?.message === 'Token revoked' ||
+        resBody?.errors?.message === 'Token revoked' ||
+        resBody?.errorCode === 'UNAUTHENTICATED' ||
+        resBody?.errors?.errorCode === 'UNAUTHENTICATED'
+      ) {
+        redirect('/api/auth/revoked-signout')
+      }
+
       return {
         status: res.status,
         errors: resBody
@@ -92,6 +118,8 @@ export async function postRequest<T = any>(url: string, body: any): Promise<ApiR
       pagination: resBody.pagination || undefined
     }
   } catch (error: any) {
+    if (isRedirectError(error)) throw error
+
     return {
       errors: {
         message: error?.message || 'Network error occurred.'

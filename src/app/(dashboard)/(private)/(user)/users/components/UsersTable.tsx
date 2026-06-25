@@ -365,7 +365,7 @@ return 'N/A'
               color={row?.original?.status ? 'success' : 'warning'}
             />
             <Switch
-              checked={row?.original?.status}
+              checked={!!row?.original?.status}
               onChange={() => handleStatusChange(row?.original)}
               inputProps={{ 'aria-label': 'status-toggle' }}
             />

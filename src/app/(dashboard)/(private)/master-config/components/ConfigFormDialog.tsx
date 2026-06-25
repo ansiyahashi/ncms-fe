@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -27,6 +27,7 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
 
 import { validateError } from '@/api'
+import { getLookupClients, getLookupDepartments } from '@/libs/actions/lookup.action'
 import {
   createCostCenter,
   updateCostCenter,
@@ -118,15 +119,79 @@ const ConfigFormDialog = ({
   const watchedBId = watch('b_id')
   const effectiveBId = details?.b_id || watchedBId
 
-  const filteredClients = clientsData.filter((c: any) => {
-    if (!isSuperAdmin) return true
-    
-return String(c.b_id) === String(effectiveBId)
-  })
+  const [localClients, setLocalClients] = useState<any[]>([])
+  const [loadingClients, setLoadingClients] = useState(false)
+
+  const [localDepartments, setLocalDepartments] = useState<any[]>([])
+  const [loadingDepartments, setLoadingDepartments] = useState(false)
+
+  useEffect(() => {
+    if (!isSuperAdmin || !effectiveBId) {
+      setLocalClients([])
+      return
+    }
+
+    let active = true
+    const fetchClients = async () => {
+      setLoadingClients(true)
+      try {
+        const res = await getLookupClients({ b_id: effectiveBId })
+        if (active) {
+          setLocalClients(res?.data?.clients?.data || [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch clients for business in dialog:', err)
+      } finally {
+        if (active) {
+          setLoadingClients(false)
+        }
+      }
+    }
+
+    fetchClients()
+
+    return () => {
+      active = false
+    }
+  }, [effectiveBId, isSuperAdmin])
+
+  useEffect(() => {
+    if (!isSuperAdmin || !effectiveBId) {
+      setLocalDepartments([])
+      return
+    }
+
+    let active = true
+    const fetchDepartments = async () => {
+      setLoadingDepartments(true)
+      try {
+        const res = await getLookupDepartments({ b_id: effectiveBId })
+        if (active) {
+          setLocalDepartments(res?.data?.departments?.data || [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch departments for business in dialog:', err)
+      } finally {
+        if (active) {
+          setLoadingDepartments(false)
+        }
+      }
+    }
+
+    fetchDepartments()
+
+    return () => {
+      active = false
+    }
+  }, [effectiveBId, isSuperAdmin])
+
+  const filteredClients = isSuperAdmin ? localClients : clientsData
+  const filteredDepartments = isSuperAdmin ? localDepartments : departmentsData
 
   useEffect(() => {
     if (!details?.id && open) {
       setValue('client_id', '')
+      setValue('dep_id', '')
     }
   }, [watchedBId, details, open, setValue])
 
@@ -312,12 +377,12 @@ return String(c.b_id) === String(effectiveBId)
                         label='Client'
                         onChange={onChange}
                         sx={{ borderRadius: '8px' }}
-                        disabled={isSuperAdmin && !effectiveBId}
+                        disabled={loadingClients || (isSuperAdmin && !effectiveBId)}
                       >
                         <MenuItem value=''>
-                          <em>None (Direct Business Department)</em>
+                          {loadingClients ? 'Loading clients...' : <em>None (Direct Business Department)</em>}
                         </MenuItem>
-                        {filteredClients.map((client: any) => (
+                        {!loadingClients && filteredClients.map((client: any) => (
                           <MenuItem key={client.id} value={client.id}>
                             {client.name}
                           </MenuItem>
@@ -346,11 +411,12 @@ return String(c.b_id) === String(effectiveBId)
                         label='Department'
                         onChange={onChange}
                         sx={{ borderRadius: '8px' }}
+                        disabled={loadingDepartments || (isSuperAdmin && !effectiveBId)}
                       >
                         <MenuItem value=''>
-                          <em>None</em>
+                          {loadingDepartments ? 'Loading departments...' : <em>None</em>}
                         </MenuItem>
-                        {departmentsData.map((dept: any) => (
+                        {!loadingDepartments && filteredDepartments.map((dept: any) => (
                           <MenuItem key={dept.id} value={dept.id}>
                             {dept.name}
                           </MenuItem>

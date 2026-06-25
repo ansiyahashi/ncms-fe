@@ -394,7 +394,7 @@ return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
               />
               {!isPendingOrRejected && (
                 <Switch
-                  checked={row?.original?.status}
+                  checked={!!row?.original?.status}
                   onChange={() => handleStatusChange(row?.original)}
                   inputProps={{ 'aria-label': 'status-toggle' }}
                 />
