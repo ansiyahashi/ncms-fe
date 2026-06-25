@@ -499,6 +499,12 @@ return (
                 isAuthorized = String(session?.user?.id) === String(currentStep.approver_id)
               } else if (currentStep.approver_type === 'role') {
                 isAuthorized = String(session?.user?.role_id) === String(currentStep.approver_id)
+              } else if (currentStep.approver_type === 'manager') {
+                const userRole = rolesData.find((r: any) => r.id === session?.user?.role_id)
+
+                if (userRole && userRole.name.toLowerCase() === 'manager') {
+                  isAuthorized = true
+                }
               }
             }
           }

@@ -111,6 +111,7 @@ export const PERMISSIONS = {
   CLIENT_CREATE: 'clients.create',
   CLIENT_EDIT: 'clients.update',
   CLIENT_DELETE: 'clients.delete',
+  CLIENT_APPROVE: 'clients.approve',
 
   // Asset Statuses
   ASSET_STATUS: 'asset_statuses.view',
