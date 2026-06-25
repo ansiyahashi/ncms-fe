@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth'
+
 import MasterConfigViews from './components/MasterConfigViews'
 import {
   getAllCostCenters,
@@ -11,7 +12,7 @@ import {
 } from './api/master-config.action'
 import { authOptions } from '@/libs/auth'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
-import { getAllClients } from '@/app/(dashboard)/(private)/organization/client/api/client.action'
+import { getLookupClients, getLookupDepartments } from '@/libs/actions/lookup.action'
 
 interface PageProps {
   searchParams: Promise<{
@@ -122,7 +123,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     case 'departments': {
       const [res, clientsRes] = await Promise.all([
         getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id, client_id }),
-        (isSuperAdmin && !b_id) ? Promise.resolve(null) : getAllClients({ size: 1000, b_id })
+        (isSuperAdmin && !b_id) ? Promise.resolve(null) : getLookupClients({ b_id })
       ])
 
       viewData = res?.data?.departments?.data || []
@@ -140,7 +141,7 @@ export default async function MasterConfigPage({ searchParams }: PageProps) {
     case 'designations': {
       const [res, deptsRes] = await Promise.all([
         getAllDesignations({ search: query, size: perPageCount, page: pageCount + 1, b_id }),
-        getAllDepartments({ size: 1000, b_id })
+        getLookupDepartments({ b_id })
       ])
 
       viewData = res?.data?.designations?.data || []

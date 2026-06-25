@@ -32,9 +32,11 @@ export const GenerateVerticalMenu = ({ menuData }: { menuData: VerticalMenuDataT
         if ('isSection' in item && item.isSection) {
           const section = item as VerticalSectionDataType
           const filteredChildren = section.children ? filterMenuData(section.children) : []
+
           if (section.permission && !hasPermission(section.permission)) {
             return null
           }
+
           if (section.children && filteredChildren.length === 0) {
             return null
           }
@@ -48,9 +50,11 @@ export const GenerateVerticalMenu = ({ menuData }: { menuData: VerticalMenuDataT
         if ('children' in item && item.children) {
           const subMenu = item as VerticalSubMenuDataType
           const filteredChildren = subMenu.children ? filterMenuData(subMenu.children) : []
+
           if (subMenu.permission && !hasPermission(subMenu.permission)) {
             return null
           }
+
           if (subMenu.children && filteredChildren.length === 0) {
             return null
           }
@@ -62,6 +66,7 @@ export const GenerateVerticalMenu = ({ menuData }: { menuData: VerticalMenuDataT
         }
 
         const menuItem = item as VerticalMenuItemDataType
+
         if (menuItem.permission && !hasPermission(menuItem.permission)) {
           return null
         }
@@ -78,7 +83,9 @@ export const GenerateVerticalMenu = ({ menuData }: { menuData: VerticalMenuDataT
       const menuItem = item as VerticalMenuItemDataType
 
       if (menuSectionItem.isSection) {
-        const { children, isSection, ...rest } = menuSectionItem
+        const { children, ...rest } = menuSectionItem
+
+        delete (rest as any).isSection
 
         return (
           <MenuSection key={index} {...rest}>
@@ -90,6 +97,7 @@ export const GenerateVerticalMenu = ({ menuData }: { menuData: VerticalMenuDataT
       if (subMenuItem.children) {
         const { children, icon, prefix, suffix, ...rest } = subMenuItem
         const Icon = icon ? <i className={icon} /> : null
+
         const subMenuPrefix: ReactNode =
           prefix && (prefix as ChipProps).label ? (
             <Chip size='small' {...(prefix as ChipProps)} />
@@ -120,6 +128,7 @@ export const GenerateVerticalMenu = ({ menuData }: { menuData: VerticalMenuDataT
       const { label, icon, prefix, suffix, ...rest } = menuItem
       const href = rest.href
       const Icon = icon ? <i className={icon} /> : null
+
       const menuItemPrefix: ReactNode =
         prefix && (prefix as ChipProps).label ? <Chip size='small' {...(prefix as ChipProps)} /> : (prefix as ReactNode)
 
@@ -156,9 +165,11 @@ export const GenerateHorizontalMenu = ({ menuData }: { menuData: HorizontalMenuD
         if ('children' in item && item.children) {
           const subMenu = item as HorizontalSubMenuDataType
           const filteredChildren = subMenu.children ? filterMenuData(subMenu.children) : []
+
           if (subMenu.permission && !hasPermission(subMenu.permission)) {
             return null
           }
+
           if (subMenu.children && filteredChildren.length === 0) {
             return null
           }
@@ -170,6 +181,7 @@ export const GenerateHorizontalMenu = ({ menuData }: { menuData: HorizontalMenuD
         }
 
         const menuItem = item as HorizontalMenuItemDataType
+
         if (menuItem.permission && !hasPermission(menuItem.permission)) {
           return null
         }
@@ -187,6 +199,7 @@ export const GenerateHorizontalMenu = ({ menuData }: { menuData: HorizontalMenuD
       if (subMenuItem.children) {
         const { children, icon, prefix, suffix, ...rest } = subMenuItem
         const Icon = icon ? <i className={icon} /> : null
+
         const subMenuPrefix: ReactNode =
           prefix && (prefix as ChipProps).label ? (
             <Chip size='small' {...(prefix as ChipProps)} />
@@ -217,6 +230,7 @@ export const GenerateHorizontalMenu = ({ menuData }: { menuData: HorizontalMenuD
       const { label, icon, prefix, suffix, ...rest } = menuItem
       const href = rest.href
       const Icon = icon ? <i className={icon} /> : null
+
       const menuItemPrefix: ReactNode =
         prefix && (prefix as ChipProps).label ? <Chip size='small' {...(prefix as ChipProps)} /> : (prefix as ReactNode)
 

@@ -197,6 +197,7 @@ const DepartmentsList = ({
         header: 'Client',
         cell: ({ row }) => {
           const clientId = row?.original?.client_id
+
           if (!clientId) {
             return (
               <Typography color='text.secondary' className='text-xs italic'>
@@ -204,8 +205,11 @@ const DepartmentsList = ({
               </Typography>
             )
           }
+
           const client = clientsData.find((c: any) => c.id === clientId)
-          return (
+
+          
+return (
             <Typography color='text.secondary' className='text-xs'>
               {client?.name || 'Unknown Client'}
             </Typography>

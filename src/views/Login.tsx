@@ -108,14 +108,31 @@ const LoginV2 = ({ mode }: { mode: Mode }) => {
       if (res?.error) {
         try {
           const errorData = JSON.parse(res.error)
+          let hasErrorSet = false
+
+          // Check if there are field-specific errors inside errorData.data, errorData.errors, or at the root
+          const fieldErrors = errorData?.data || errorData?.errors || errorData
 
           Object.keys(defaultValues).forEach(key => {
-            if (errorData?.[key]) {
-              setError(key as 'email' | 'password', { message: errorData[key] })
+            if (fieldErrors?.[key]) {
+              const msg = typeof fieldErrors[key] === 'string' ? fieldErrors[key] : (fieldErrors[key]?.message || 'Invalid value')
+
+              setError(key as 'email' | 'password', { message: msg })
+              hasErrorSet = true
             }
           })
+
+          if (!hasErrorSet) {
+            const generalMessage = errorData?.message || 'Login failed. Please check your credentials.'
+
+            setError('email', { message: generalMessage })
+          }
         } catch {
-          setError('email', { message: res?.error || 'Login failed. Please try again later' })
+          const fallbackMessage = res?.error === 'CredentialsSignin'
+            ? 'Invalid email or password'
+            : (res?.error || 'Login failed. Please try again later')
+
+          setError('email', { message: fallbackMessage })
         }
       }
     }

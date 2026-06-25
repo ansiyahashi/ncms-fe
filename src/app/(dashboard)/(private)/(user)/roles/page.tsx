@@ -29,7 +29,6 @@ export default async function RolesListPage({ searchParams }: PageProps) {
   ])
 
   const rolesData = rolesRes?.data?.roles ?? {}
-  const permissionData = permissionRes?.data?.permissions?.data || []
   const businessesData = businessesRes?.data?.businesses?.data || []
 
   if (rolesRes?.errors || permissionRes?.errors || (isSuperAdmin && businessesRes?.errors)) {
@@ -49,7 +48,6 @@ export default async function RolesListPage({ searchParams }: PageProps) {
       loading={false}
       perPageCount={perPageCount}
       pageCount={pageCount}
-      permissionData={permissionData}
       businessesData={businessesData}
     />
   )

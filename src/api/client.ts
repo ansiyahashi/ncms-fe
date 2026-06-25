@@ -1,7 +1,9 @@
 import { revalidatePath } from 'next/cache'
+
 import { getServerSession } from 'next-auth'
+
 import { authOptions } from '@/libs/auth'
-import { ApiResponse } from '.'
+import type { ApiResponse } from '.'
 
 const getApiUrl = () => {
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'

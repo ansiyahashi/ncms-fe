@@ -1,12 +1,15 @@
 import { getServerSession } from 'next-auth'
 
+import Box from '@mui/material/Box'
+
+import Typography from '@mui/material/Typography'
+
 import { authOptions } from '@/libs/auth'
 import type { PageProps } from '@/types/pageTypes'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
 import DesignationsList from '../components/DesignationsList'
-import { getAllDesignations, getAllDepartments } from '../api/master-config.action'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import { getAllDesignations } from '../api/master-config.action'
+import { getLookupDepartments } from '@/libs/actions/lookup.action'
 
 export default async function DesignationsPage({ searchParams }: PageProps) {
   const params = await (searchParams ||
@@ -27,11 +30,12 @@ export default async function DesignationsPage({ searchParams }: PageProps) {
 
   const [res, deptsRes] = await Promise.all([
     getAllDesignations({ search: query, size: perPageCount, page: pageCount + 1, b_id }),
-    getAllDepartments({ size: 1000, b_id })
+    getLookupDepartments({ b_id })
   ])
 
   const listData = res?.data?.designations?.data || []
   const departmentsData = deptsRes?.data?.departments?.data || []
+
   const pagination = {
     totalData: res?.data?.designations?.totalData || 0,
     totalPages: res?.data?.designations?.totalPages || 0,
@@ -43,6 +47,7 @@ export default async function DesignationsPage({ searchParams }: PageProps) {
 
   if (res?.errors || deptsRes?.errors || (isSuperAdmin && businessesRes?.errors)) {
     const error = res?.errors || deptsRes?.errors || businessesRes?.errors
+
     throw new Error(error?.message || 'Failed to fetch Designations data.')
   }
 

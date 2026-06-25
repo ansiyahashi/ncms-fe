@@ -131,6 +131,7 @@ const DataTableComponent = <T,>(
         nextQueryParams.delete(pageParam)
 
         const nextUrl = `${pathname}${nextQueryParams.toString() ? `?${nextQueryParams.toString()}` : ''}`
+
         router.push(nextUrl)
       } else {
         nextQueryParams.set(sortByParam, nextSort.id)
@@ -138,6 +139,7 @@ const DataTableComponent = <T,>(
         nextQueryParams.delete(pageParam)
 
         const nextUrl = `${pathname}${nextQueryParams.toString() ? `?${nextQueryParams.toString()}` : ''}`
+
         router.push(nextUrl)
       }
     }
@@ -169,10 +171,13 @@ const DataTableComponent = <T,>(
 
   useImperativeHandle(ref, () => {
     const element = innerRef.current as any
+
     if (element) {
       element.table = table
     }
-    return element
+
+    
+return element
   })
 
   const resolvedPaginationShow = hidePagination ? false : paginationShow
@@ -187,6 +192,7 @@ const DataTableComponent = <T,>(
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header: any) => {
                   const isAllowedBySortableFields = !hasSortableFieldFilter || sortableFieldSet.has(header.column.id)
+
                   const showSort =
                     sortingEnabled &&
                     isAllowedBySortableFields &&

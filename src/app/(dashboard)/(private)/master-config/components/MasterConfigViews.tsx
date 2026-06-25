@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type SyntheticEvent } from 'react'
+import { useState } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 

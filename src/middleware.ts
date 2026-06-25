@@ -7,8 +7,9 @@ import { ROUTE_PERMISSIONS } from './libs/paths'
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token
-
     const pathname = req.nextUrl.pathname
+
+    console.log('MIDDLEWARE REQUEST PATHNAME:', pathname)
 
     // If no token and trying to access protected routes, allow NextAuth to handle redirect
     if (!token) {

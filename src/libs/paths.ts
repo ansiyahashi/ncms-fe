@@ -111,6 +111,7 @@ export const PERMISSIONS = {
   CLIENT_CREATE: 'clients.create',
   CLIENT_EDIT: 'clients.update',
   CLIENT_DELETE: 'clients.delete',
+  CLIENT_APPROVE: 'clients.approve',
 
   // Asset Statuses
   ASSET_STATUS: 'asset_statuses.view',
@@ -179,6 +180,8 @@ export const ROUTE_PERMISSIONS = [
   { path: '/organization/department/[id]/edit', permission: PERMISSIONS.DEPARTMENT_EDIT },
 
   { path: '/organization/approvals', permission: PERMISSIONS.APPROVAL },
+  { path: '/organization/approvals/add', permission: PERMISSIONS.APPROVAL_CREATE },
+  { path: '/organization/approvals/[id]/edit', permission: PERMISSIONS.APPROVAL_EDIT },
 
   // Facility Management
   { path: '/facility/hierarchy', permission: PERMISSIONS.FACILITY },

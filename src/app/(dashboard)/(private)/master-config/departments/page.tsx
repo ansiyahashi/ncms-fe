@@ -1,13 +1,15 @@
 import { getServerSession } from 'next-auth'
 
+import Box from '@mui/material/Box'
+
+import Typography from '@mui/material/Typography'
+
 import { authOptions } from '@/libs/auth'
 import type { PageProps } from '@/types/pageTypes'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
-import { getAllClients } from '@/app/(dashboard)/(private)/organization/client/api/client.action'
+import { getLookupClients } from '@/libs/actions/lookup.action'
 import DepartmentsList from '../components/DepartmentsList'
 import { getAllDepartments } from '../api/master-config.action'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 
 export default async function DepartmentsPage({ searchParams }: PageProps) {
   const params = await (searchParams ||
@@ -28,11 +30,12 @@ export default async function DepartmentsPage({ searchParams }: PageProps) {
   const session = await getServerSession(authOptions)
   const isSuperAdmin = session?.user?.is_super_admin || false
 
-  const clientsRes = (isSuperAdmin && !b_id) ? null : await getAllClients({ size: 1000, b_id })
+  const clientsRes = (isSuperAdmin && !b_id) ? null : await getLookupClients({ b_id })
   const clientsData = clientsRes?.data?.clients?.data || []
 
   const res = await getAllDepartments({ search: query, size: perPageCount, page: pageCount + 1, b_id, client_id })
   const listData = res?.data?.departments?.data || []
+
   const pagination = {
     totalData: res?.data?.departments?.totalData || 0,
     totalPages: res?.data?.departments?.totalPages || 0,
@@ -44,6 +47,7 @@ export default async function DepartmentsPage({ searchParams }: PageProps) {
 
   if (res?.errors || (isSuperAdmin && businessesRes?.errors) || (clientsRes && clientsRes.errors)) {
     const error = res?.errors || businessesRes?.errors || clientsRes?.errors
+
     throw new Error(error?.message || 'Failed to fetch Departments data.')
   }
 

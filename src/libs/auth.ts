@@ -31,12 +31,21 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (res?.errors) {
-            throw new Error(JSON.stringify(res?.errors))
+            return {
+              id: 'error',
+              error: JSON.stringify(res?.errors)
+            } as any
           }
 
-          return null
+          return {
+            id: 'error',
+            error: JSON.stringify({ message: 'Login failed. Please check your credentials.' })
+          } as any
         } catch (error: any) {
-          throw new Error(error?.message || 'Login failed')
+          return {
+            id: 'error',
+            error: JSON.stringify({ message: error?.message || 'Login failed' })
+          } as any
         }
       }
     })
@@ -50,6 +59,13 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    async signIn({ user }) {
+      if (user && 'error' in (user as any)) {
+        throw new Error((user as any).error as string)
+      }
+
+      return true
+    },
     async redirect({ url, baseUrl }) {
       if (url.startsWith('/')) return `${baseUrl}${url}`
       if (url.startsWith(baseUrl)) return url

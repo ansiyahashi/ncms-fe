@@ -1,12 +1,14 @@
 import { getServerSession } from 'next-auth'
 
+import Box from '@mui/material/Box'
+
+import Typography from '@mui/material/Typography'
+
 import { authOptions } from '@/libs/auth'
 import type { PageProps } from '@/types/pageTypes'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
 import CostCentersList from '../components/CostCentersList'
 import { getAllCostCenters } from '../api/master-config.action'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 
 export default async function CostCentersPage({ searchParams }: PageProps) {
   const params = await (searchParams ||
@@ -27,6 +29,7 @@ export default async function CostCentersPage({ searchParams }: PageProps) {
 
   const res = await getAllCostCenters({ search: query, size: perPageCount, page: pageCount + 1, b_id })
   const listData = res?.data?.costCenters?.data || []
+
   const pagination = {
     totalData: res?.data?.costCenters?.totalData || 0,
     totalPages: res?.data?.costCenters?.totalPages || 0,
@@ -38,6 +41,7 @@ export default async function CostCentersPage({ searchParams }: PageProps) {
 
   if (res?.errors || (isSuperAdmin && businessesRes?.errors)) {
     const error = res?.errors || businessesRes?.errors
+
     throw new Error(error?.message || 'Failed to fetch Cost Centers data.')
   }
 
