@@ -43,7 +43,6 @@ export async function getRequest<T = any>(url: string): Promise<ApiResponse<T>> 
 
     if (!res.ok) {
       if (
-        res.status === 401 ||
         body?.message === 'Token revoked' ||
         body?.errors?.message === 'Token revoked' ||
         body?.errorCode === 'UNAUTHENTICATED' ||
@@ -97,7 +96,6 @@ export async function postRequest<T = any>(url: string, body: any): Promise<ApiR
 
     if (!res.ok) {
       if (
-        res.status === 401 ||
         resBody?.message === 'Token revoked' ||
         resBody?.errors?.message === 'Token revoked' ||
         resBody?.errorCode === 'UNAUTHENTICATED' ||
