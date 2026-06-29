@@ -31,7 +31,9 @@ export async function getAllBusinesses(variables: any) {
   const limit = variables?.size || 10
   const page = variables?.page || 1
 
-  const res = await getRequest(`/businesses?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`)
+  const res = await getRequest(
+    `/businesses?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}&paginate=true`
+  )
 
   if (res?.data) {
     const mapped = Array.isArray(res.data) ? res.data.map((b: any) => formatBusiness(b)) : []

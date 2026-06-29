@@ -27,7 +27,14 @@ const getSchema = (isEdit: boolean) => {
     email: pipe(string(), nonEmpty('Business email is required'), email('Please enter a valid email address')),
     plan: pipe(string(), nonEmpty('Subscription plan is required')),
     contact: string(),
-    phone: string(),
+    phone: pipe(
+      string(),
+      custom(
+        (value: any) =>
+          value === '' || /^[6-9]\d{9}$/.test(value),
+        'Enter a valid 10-digit mobile number'
+      )
+    ),
     address: string(),
     business_type: string(),
     industry: string(),
@@ -304,6 +311,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                       label='Phone Number'
                       onChange={onChange}
                       placeholder='Business Phone Number'
+                      error={Boolean(errors?.phone)}
                       slotProps={{
                         input: {
                           sx: { borderRadius: '8px' }
@@ -312,6 +320,9 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
                     />
                   )}
                 />
+                {errors?.phone && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.phone?.message as string}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
 
