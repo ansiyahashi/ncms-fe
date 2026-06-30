@@ -51,6 +51,7 @@ const getSchema = (isEdit = false, isSuperAdmin = false) => {
     role_id: pipe(string(), nonEmpty('Please select role')),
     dep_id: optional(string()),
     des_id: optional(string()),
+    user_type_id: pipe(string(), nonEmpty('Please select user type')),
     is_admin: boolean()
   }
 
@@ -93,6 +94,7 @@ const defaultValues = {
   role_id: '',
   dep_id: '',
   des_id: '',
+  user_type_id: '',
   password: '',
   confirm_password: '',
   is_admin: false,
@@ -108,6 +110,7 @@ interface UsersFormDialogProps {
   businesses?: any[]
   departments?: any[]
   designations?: any[]
+  userTypes?: any[]
   currentBId?: string
 }
 
@@ -120,6 +123,7 @@ const UsersFormDialog = ({
   businesses = [],
   departments = [],
   designations = [],
+  userTypes = [],
   currentBId = ''
 }: UsersFormDialogProps) => {
   const { data: session } = useSession()
@@ -156,6 +160,7 @@ const UsersFormDialog = ({
         role_id: details.role_id || '',
         dep_id: details.dep_id || '',
         des_id: details.des_id || '',
+        user_type_id: details.user_type_id || '',
         password: '',
         confirm_password: '',
         is_admin: details.is_admin || false,
@@ -164,7 +169,8 @@ const UsersFormDialog = ({
     } else {
       reset({
         ...defaultValues,
-        b_id: currentBId || ''
+        b_id: currentBId || '',
+        user_type_id: ''
       })
     }
   }, [details, reset, open, currentBId])
@@ -237,6 +243,18 @@ const UsersFormDialog = ({
 
     return list
   }, [designations, selectedBId, selectedDepId, isSuperAdmin])
+
+  const filteredUserTypes = useMemo(() => {
+    if (selectedBId) {
+      return userTypes.filter(type => type.b_id === selectedBId)
+    }
+
+    if (isSuperAdmin && !selectedBId) {
+      return []
+    }
+
+    return userTypes
+  }, [userTypes, selectedBId, isSuperAdmin])
 
   const onSubmit = async (params: any) => {
     try {
@@ -474,6 +492,29 @@ const UsersFormDialog = ({
                 {errors?.des_id && <FormHelperText>{errors?.des_id?.message}</FormHelperText>}
               </FormControl>
             </Grid>
+            {/* user type selection */}
+            <Grid size={12}>
+              <FormControl fullWidth error={Boolean(errors?.user_type_id)}>
+                <InputLabel>User Type</InputLabel>
+                <Controller
+                  name='user_type_id'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Select value={value ?? ''} onChange={onChange} label='User Type' sx={{ borderRadius: '8px' }}>
+                      <MenuItem value=''>
+                        <em>None</em>
+                      </MenuItem>
+                      {filteredUserTypes?.map(userType => (
+                        <MenuItem key={userType?.id} value={userType?.id}>
+                          {userType?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.user_type_id && <FormHelperText>{errors?.user_type_id?.message}</FormHelperText>}
+              </FormControl>
+            </Grid>
 
             {/* Switch Toggle is_admin Row */}
             <Grid size={12}>
@@ -493,7 +534,6 @@ const UsersFormDialog = ({
                 />
               </Box>
             </Grid>
-
             {/* Password fields (new user only) */}
             {!details?.id && (
               <>

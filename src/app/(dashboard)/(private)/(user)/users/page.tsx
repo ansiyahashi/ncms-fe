@@ -3,7 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/libs/auth'
 import { getAllUsers } from './api/user.action'
 import { getAllBusinesses } from '@/app/(dashboard)/(private)/organization/business/api/business.action'
-import { getLookupRoles, getLookupDepartments, getLookupDesignations } from '@/libs/actions/lookup.action'
+import {
+  getLookupRoles,
+  getLookupDepartments,
+  getLookupDesignations,
+  getLookupUserTypes
+} from '@/libs/actions/lookup.action'
 import UsersTable from '@/app/(dashboard)/(private)/(user)/users/components/UsersTable'
 import type { PageProps } from '@/types/pageTypes'
 
@@ -18,7 +23,7 @@ export default async function UsersListPage({ searchParams }: PageProps) {
   const session = await getServerSession(authOptions)
   const isSuperAdmin = session?.user?.is_super_admin || false
 
-  const [usersRes, rolesRes, businessesRes, departmentsRes, designationsRes] = await Promise.all([
+  const [usersRes, rolesRes, businessesRes, departmentsRes, designationsRes, userTypesRes] = await Promise.all([
     getAllUsers({
       search: query,
       size: +perPageCount,
@@ -35,6 +40,9 @@ export default async function UsersListPage({ searchParams }: PageProps) {
     }),
     getLookupDesignations({
       b_id
+    }),
+    getLookupUserTypes({
+      b_id
     })
   ])
 
@@ -43,10 +51,19 @@ export default async function UsersListPage({ searchParams }: PageProps) {
   const businessesData = businessesRes?.data?.businesses?.data || []
   const departmentsData = departmentsRes?.data?.departments?.data || []
   const designationsData = designationsRes?.data?.designations?.data || []
+  const userTypesData = userTypesRes?.data?.userTypes?.data || []
 
-  if (usersRes?.errors || rolesRes?.errors || (isSuperAdmin && businessesRes?.errors) || departmentsRes?.errors || designationsRes?.errors) {
-    const errors = usersRes?.errors || rolesRes?.errors || businessesRes?.errors || departmentsRes?.errors || designationsRes?.errors
-    
+  if (
+    usersRes?.errors ||
+    rolesRes?.errors ||
+    (isSuperAdmin && businessesRes?.errors) ||
+    departmentsRes?.errors ||
+    designationsRes?.errors ||
+    userTypesRes?.errors
+  ) {
+    const errors =
+      usersRes?.errors || rolesRes?.errors || businessesRes?.errors || departmentsRes?.errors || designationsRes?.errors
+
     if (errors) throw new Error(errors?.message || 'Failed to fetch page data. Please try again later')
   }
 
@@ -65,6 +82,7 @@ export default async function UsersListPage({ searchParams }: PageProps) {
       businessesData={businessesData}
       departmentsData={departmentsData}
       designationsData={designationsData}
+      userTypesData={userTypesData}
     />
   )
 }
