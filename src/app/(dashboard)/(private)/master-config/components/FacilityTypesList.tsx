@@ -116,7 +116,6 @@ const FacilityTypesList = ({
               b_id: currentBId,
               status: updatedStatus,
               name: item.name,
-              key: item.key,
               description: item.description
             }
           },
@@ -149,14 +148,7 @@ const FacilityTypesList = ({
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('key', {
-        header: 'Key',
-        cell: ({ row }) => (
-          <Typography color='text.secondary' className='font-mono text-xs bg-actionHover px-2 py-0.5 rounded border border-divider inline-block'>
-            {row?.original?.key}
-          </Typography>
-        )
-      }),
+
       columnHelper.accessor('name', {
         header: 'Name',
         cell: ({ row }) => {

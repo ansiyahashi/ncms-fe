@@ -41,7 +41,6 @@ import {
 const schema = object({
   name: pipe(string(), nonEmpty('Name is required')),
   code: optional(string()),
-  key: optional(string()),
   description: optional(string()),
   b_id: optional(string()),
   dep_id: optional(string()),
@@ -52,7 +51,6 @@ const schema = object({
 const defaultValues = {
   name: '',
   code: '',
-  key: '',
   description: '',
   b_id: '',
   dep_id: '',
@@ -242,11 +240,7 @@ const ConfigFormDialog = ({
       return
     }
 
-    if (['user-types', 'facility-types', 'asset-statuses'].includes(type) && !params.key) {
-      setError('key', { message: 'Key is required' })
 
-      return
-    }
 
     if (type === 'designations' && !params.dep_id) {
       setError('dep_id', {
@@ -469,33 +463,7 @@ const ConfigFormDialog = ({
               </Grid>
             )}
 
-            {/* Key field for User Type, Facility Type, Asset Status */}
-            {['user-types', 'facility-types', 'asset-statuses'].includes(type) && (
-              <Grid size={12}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='key'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <TextField
-                        value={value ?? ''}
-                        label='Key'
-                        onChange={onChange}
-                        placeholder='e.g., active_status'
-                        error={Boolean(errors?.key)}
-                        disabled={!!details?.id && type === 'asset-statuses'} // Key is read-only for asset status updates in backend
-                        slotProps={{
-                          input: {
-                            sx: { borderRadius: '8px' }
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                  {errors?.key && <FormHelperText sx={{ color: 'error.main' }}>{errors?.key?.message}</FormHelperText>}
-                </FormControl>
-              </Grid>
-            )}
+
 
             {/* Name field */}
             <Grid size={12}>
