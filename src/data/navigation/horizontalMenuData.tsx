@@ -93,32 +93,31 @@ const horizontalMenuData = (): HorizontalMenuDataType[] => [
         permission: PERMISSIONS.LOCATION
       }
     ]
-  }
-
-  // {
-  //   label: 'Assets & PM',
-  //   icon: 'ri-tools-line',
-  //   children: [
-  //     {
-  //       label: 'Asset Registry',
-  //       href: '/assets/registry',
-  //       icon: 'ri-tools-line',
-  //       permission: PERMISSIONS.ASSET
-  //     },
-  //     {
-  //       label: 'PM Schedules',
-  //       href: '/maintenance/schedules',
-  //       icon: 'ri-calendar-todo-line',
-  //       permission: PERMISSIONS.MAINTENANCE
-  //     },
-  //     {
-  //       label: 'Work Orders',
-  //       href: '/work-orders',
-  //       icon: 'ri-task-line',
-  //       permission: PERMISSIONS.WORK_ORDER
-  //     }
-  //   ]
-  // },
+  },
+  {
+    label: 'Helpdesk & Maintenance',
+    icon: 'ri-customer-service-2-line',
+    children: [
+      {
+        label: 'Complaints',
+        href: '/helpdesk/complaints',
+        icon: 'ri-chat-poll-line',
+        permission: PERMISSIONS.COMPLAINT
+      },
+      {
+        label: 'Service Requests',
+        href: '/helpdesk/service-requests',
+        icon: 'ri-customer-service-2-line',
+        permission: PERMISSIONS.SERVICE_REQUEST
+      },
+      {
+        label: 'Work Orders',
+        href: '/maintenance/work-orders',
+        icon: 'ri-task-line',
+        permission: PERMISSIONS.WORK_ORDER
+      }
+    ]
+  },
   // {
   //   label: 'Commercials & Logs',
   //   icon: 'ri-home-8-line',

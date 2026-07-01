@@ -135,12 +135,35 @@ export const PERMISSIONS = {
   ASSET: 'facilities.view', // Placeholder permission for general assets until assets model is seeded
   ASSET_CREATE: 'facilities.view',
   MAINTENANCE: 'facilities.view',
-  WORK_ORDER: 'facilities.view',
   INVENTORY: 'facilities.view',
   PROPERTY: 'facilities.view',
   UTILITY: 'facilities.view',
   FINANCIAL: 'facilities.view',
-  REPORTS: 'facilities.view'
+  REPORTS: 'facilities.view',
+
+  // Complaints
+  COMPLAINT: 'complaints.view',
+  COMPLAINT_CREATE: 'complaints.create',
+  COMPLAINT_EDIT: 'complaints.update',
+  COMPLAINT_DELETE: 'complaints.delete',
+
+  // Service Requests
+  SERVICE_REQUEST: 'service_requests.view',
+  SERVICE_REQUEST_CREATE: 'service_requests.create',
+  SERVICE_REQUEST_EDIT: 'service_requests.update',
+  SERVICE_REQUEST_ASSIGN: 'service_requests.assign',
+  SERVICE_REQUEST_ESCALATE: 'service_requests.escalate',
+  SERVICE_REQUEST_DELETE: 'service_requests.delete',
+
+  // Work Orders
+  WORK_ORDER: 'work_orders.view',
+  WORK_ORDER_CREATE: 'work_orders.create',
+  WORK_ORDER_EDIT: 'work_orders.update',
+  WORK_ORDER_ASSIGN: 'work_orders.assign',
+  WORK_ORDER_WORKFLOW: 'work_orders.workflow',
+  WORK_ORDER_APPROVE: 'work_orders.approve',
+  WORK_ORDER_CLOSE: 'work_orders.close',
+  WORK_ORDER_DELETE: 'work_orders.delete'
 }
 
 export const ROUTE_PERMISSIONS = [
@@ -210,7 +233,12 @@ export const ROUTE_PERMISSIONS = [
   { path: '/maintenance/checklists', permission: PERMISSIONS.MAINTENANCE },
   { path: '/maintenance/schedules', permission: PERMISSIONS.MAINTENANCE },
 
+  // Helpdesk
+  { path: '/helpdesk/complaints', permission: PERMISSIONS.COMPLAINT },
+  { path: '/helpdesk/service-requests', permission: PERMISSIONS.SERVICE_REQUEST },
+
   // Work Order Management
+  { path: '/maintenance/work-orders', permission: PERMISSIONS.WORK_ORDER },
   { path: '/work-orders', permission: PERMISSIONS.WORK_ORDER },
 
   // Inventory & Procurement
