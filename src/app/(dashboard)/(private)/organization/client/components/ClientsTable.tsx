@@ -204,7 +204,11 @@ const ClientsTable = ({
   }, [])
 
   const onDataChange = useCallback((updatedItem: any) => {
-    addOrUpdateItem(setData, updatedItem, 'id')
+    if (updatedItem?.approval_status === 'approved') {
+      addOrUpdateItem(setData, updatedItem, 'id')
+    } else {
+      setData(prev => prev.filter(c => c?.id !== updatedItem?.id))
+    }
 
     if (activeTab === 'pending') {
       fetchPendingClients()
@@ -238,10 +242,10 @@ return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
       if (res?.data?.approveClient) {
         toast.success(`Successfully approved client ${approveClientName}!`)
 
+        addOrUpdateItem(setData, res.data.approveClient, 'id')
+
         if (activeTab === 'pending') {
           setPendingData(prev => prev.filter(c => c?.id !== approveClientId))
-        } else {
-          addOrUpdateItem(setData, res.data.approveClient, 'id')
         }
 
         setApproveConfirmOpen(false)
@@ -265,10 +269,10 @@ return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
       if (res?.data?.rejectClient) {
         toast.success(`Successfully rejected client ${rejectClientName}.`)
 
+        setData(prev => prev.filter(c => c?.id !== rejectClientId))
+
         if (activeTab === 'pending') {
           setPendingData(prev => prev.filter(c => c?.id !== rejectClientId))
-        } else {
-          addOrUpdateItem(setData, res.data.rejectClient, 'id')
         }
 
         setRejectConfirmOpen(false)
@@ -315,20 +319,24 @@ return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
       columnHelper.accessor('contact_person', {
         header: 'Contact Details',
         cell: ({ row }) => (
-          <div className='flex flex-col gap-0.5'>
-            <Typography className='text-xs font-semibold text-textPrimary'>
+          <div className='flex flex-col gap-1'>
+            <Typography className='text-[13px] font-semibold text-textPrimary'>
               {row?.original?.contact_person || '-'}
             </Typography>
-            {row?.original?.email && (
-              <Typography className='text-[10px] text-textSecondary flex items-center gap-1'>
-                <i className='ri-mail-line' /> {row?.original?.email}
-              </Typography>
-            )}
-            {row?.original?.phone && (
-              <Typography className='text-[10px] text-textSecondary flex items-center gap-1'>
-                <i className='ri-phone-line' /> {row?.original?.phone}
-              </Typography>
-            )}
+            <div className='flex flex-col gap-0.5'>
+              {row?.original?.email && (
+                <Typography className='text-[11px] text-textSecondary flex items-center gap-1.5'>
+                  <i className='ri-mail-line text-[11px] opacity-40' />
+                  <span className='truncate'>{row?.original?.email}</span>
+                </Typography>
+              )}
+              {row?.original?.phone && (
+                <Typography className='text-[11px] text-textSecondary flex items-center gap-1.5'>
+                  <i className='ri-phone-line text-[11px] opacity-40' />
+                  <span>{row?.original?.phone}</span>
+                </Typography>
+              )}
+            </div>
           </div>
         )
       }),
@@ -457,15 +465,24 @@ return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
       columnHelper.accessor('contact_person', {
         header: 'Contact Details',
         cell: ({ row }) => (
-          <div className='flex flex-col gap-0.5'>
-            <Typography className='text-xs font-semibold text-textPrimary'>
+          <div className='flex flex-col gap-1'>
+            <Typography className='text-[13px] font-semibold text-textPrimary'>
               {row?.original?.contact_person || '-'}
             </Typography>
-            {row?.original?.email && (
-              <Typography className='text-[10px] text-textSecondary flex items-center gap-1'>
-                <i className='ri-mail-line' /> {row?.original?.email}
-              </Typography>
-            )}
+            <div className='flex flex-col gap-0.5'>
+              {row?.original?.email && (
+                <Typography className='text-[11px] text-textSecondary flex items-center gap-1.5'>
+                  <i className='ri-mail-line text-[11px] opacity-40' />
+                  <span className='truncate'>{row?.original?.email}</span>
+                </Typography>
+              )}
+              {row?.original?.phone && (
+                <Typography className='text-[11px] text-textSecondary flex items-center gap-1.5'>
+                  <i className='ri-phone-line text-[11px] opacity-40' />
+                  <span>{row?.original?.phone}</span>
+                </Typography>
+              )}
+            </div>
           </div>
         )
       }),

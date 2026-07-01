@@ -187,8 +187,8 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
   return (
     <Dialog
       open={open}
-      maxWidth='sm'
       fullWidth
+      maxWidth={false}
       scroll='body'
       onClose={() => {
         setOpen(false)
@@ -197,11 +197,13 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
       PaperProps={{
         sx: {
           borderRadius: '16px',
-          padding: '8px'
+          padding: '8px',
+          width: '100%',
+          maxWidth: '680px'
         }
       }}
     >
-      <DialogTitle variant='h4' className='flex gap-1 flex-col text-center pt-8 pb-4 px-6 sm:px-16'>
+      <DialogTitle variant='h4' className='flex gap-1 flex-col text-center pt-8 pb-4 px-6 sm:px-8'>
         <span className='font-bold text-textPrimary'>
           {details ? 'Update' : 'New'} Business Workspace
         </span>
@@ -211,7 +213,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
       </DialogTitle>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent className='pt-2 pb-6 px-6 sm:px-16 flex flex-col gap-5'>
+        <DialogContent className='pt-2 pb-6 px-6 sm:px-8 flex flex-col gap-5'>
           <IconButton
             onClick={() => setOpen(false)}
             className='absolute top-4 right-4 hover:bg-actionHover rounded-full transition-colors'
@@ -219,7 +221,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
             <i className='ri-close-line text-textSecondary text-xl' />
           </IconButton>
 
-          <Grid container spacing={5}>
+          <Grid container spacing={4}>
             {/* Business Name */}
             <Grid size={12}>
               <FormControl fullWidth>
@@ -472,15 +474,15 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
         {!details?.id && (
           <>
             <Divider className='my-4' />
-            <DialogTitle variant='h4' className='text-center pt-0 pb-2 px-6 sm:px-16'>
+            <DialogTitle variant='h4' className='text-center pt-0 pb-2 px-6 sm:px-8'>
               <span className='font-bold text-textPrimary text-lg'>Admin Account Setup</span>
               <Typography variant='body2' className='text-textSecondary'>
                 Specify administrative credentials to manage this new business workspace
               </Typography>
             </DialogTitle>
 
-            <DialogContent className='pt-2 pb-6 px-6 sm:px-16 flex flex-col gap-5'>
-              <Grid container spacing={5}>
+            <DialogContent className='pt-2 pb-6 px-6 sm:px-8 flex flex-col gap-5'>
+              <Grid container spacing={4}>
                 {/* User name */}
                 <Grid size={6}>
                   <FormControl fullWidth>
@@ -619,7 +621,7 @@ const BusinessFormDialog = ({ open, setOpen, details, onDataChange }: BusinessFo
           </>
         )}
 
-        <DialogActions className='px-6 pb-8 sm:px-16 flex gap-3 justify-end'>
+        <DialogActions className='px-6 pb-8 sm:px-8 flex gap-3 justify-end'>
           <Button
             variant='outlined'
             onClick={() => {
