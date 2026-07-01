@@ -236,11 +236,16 @@ export const validateError = (
   }
 
   let hasFieldError = false
-  const fieldErrors = errors?.validationErrors || errors
+  const isFallback = !errors?.validationErrors && !(errors?.data && typeof errors.data === 'object')
+  const fieldErrors = errors?.validationErrors || (errors?.data && typeof errors.data === 'object' ? errors.data : null) || errors
 
   if (setError && fieldErrors && Object.keys(fieldErrors).length > 0) {
     Object.keys(defaultValues).forEach(key => {
       if (fieldErrors[key]) {
+        if (isFallback && ['status', 'success', 'message', 'error', 'errorCode'].includes(key)) {
+          return
+        }
+
         const message = fieldErrors[key]?.message ?? fieldErrors[key]
 
         setError(key as any, { message })
