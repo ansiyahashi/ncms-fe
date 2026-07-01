@@ -25,7 +25,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
   const isSuperAdmin = session?.user?.is_super_admin || false
 
   const [res, rolesRes, businessesRes] = await Promise.all([
-    getAllClients({ search: query, size: perPageCount, page: pageCount + 1, b_id }),
+    getAllClients({ search: query, size: perPageCount, page: pageCount + 1, b_id, approval_status: 'approved' }),
     getLookupRoles({ b_id }),
     isSuperAdmin ? getAllBusinesses({ size: 1000 }) : Promise.resolve(null)
   ])

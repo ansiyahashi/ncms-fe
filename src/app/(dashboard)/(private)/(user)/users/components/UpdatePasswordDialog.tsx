@@ -13,7 +13,7 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import { CircularProgress, FormHelperText, InputAdornment } from '@mui/material'
-import { nonEmpty, object, pipe, string, minLength, forward, partialCheck } from 'valibot'
+import { nonEmpty, object, pipe, string, minLength, forward, partialCheck, regex } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
@@ -26,7 +26,11 @@ const schema = pipe(
     password: pipe(
       string(),
       nonEmpty('Please enter password'),
-      minLength(6, 'Password must be at least 6 characters long')
+      minLength(8, 'Password must be at least 8 characters long'),
+      regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/,
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      )
     ),
     confirm_password: pipe(string(), nonEmpty('Please confirm your password'))
   }),

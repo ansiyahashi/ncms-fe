@@ -13,16 +13,8 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import Box from '@mui/material/Box'
-import {
-  CircularProgress,
-  FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
-  Switch,
-  Divider
-} from '@mui/material'
-import { boolean, object, pipe, string, optional, nonEmpty } from 'valibot'
+import { CircularProgress, FormHelperText, InputLabel, Select, MenuItem, Switch, Divider } from '@mui/material'
+import { boolean, object, pipe, string, nonEmpty, optional, email, regex } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
@@ -34,8 +26,15 @@ const schema = object({
   name: pipe(string(), nonEmpty('Client Name is required')),
   code: optional(string()),
   contact_person: optional(string()),
-  email: optional(string()),
-  phone: optional(string()),
+
+  email: pipe(string(), nonEmpty('Email is required'), email('Please enter a valid email address')),
+
+  phone: pipe(
+    string(),
+    nonEmpty('Phone number is required'),
+    regex(/^\+?[0-9\s()-]{8,15}$/, 'Please enter a valid phone number')
+  ),
+
   address: optional(string()),
   vat_trn_no: optional(string()),
   trade_licence_no: optional(string()),
@@ -123,9 +122,7 @@ const ClientFormDialog = ({
         }
       }
 
-      const response = details?.id
-        ? await updateClient(payload, '/organization/client')
-        : await createClient(payload)
+      const response = details?.id ? await updateClient(payload, '/organization/client') : await createClient(payload)
 
       const returnedData = details?.id ? (response.data as any)?.updateClient : (response.data as any)?.createClient
       const responseErrors = response.errors
@@ -167,9 +164,7 @@ const ClientFormDialog = ({
       }}
     >
       <DialogTitle variant='h4' className='flex gap-1 flex-col text-center pt-8 pb-4 px-6 sm:px-16'>
-        <span className='font-bold text-textPrimary'>
-          {details?.id ? 'Update' : 'New'} Client Profile
-        </span>
+        <span className='font-bold text-textPrimary'>{details?.id ? 'Update' : 'New'} Client Profile</span>
         <Typography variant='body2' className='text-textSecondary'>
           {details?.id
             ? 'Modify the profiles, contact details, and tax properties of this client'
@@ -187,7 +182,6 @@ const ClientFormDialog = ({
           </IconButton>
 
           <Grid container spacing={5}>
-
             {/* General Info Heading */}
             <Grid size={12}>
               <Box className='flex flex-col gap-1'>
@@ -348,10 +342,13 @@ const ClientFormDialog = ({
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <TextField
+                      required
                       value={value ?? ''}
                       label='Phone Number'
                       onChange={onChange}
                       placeholder='e.g., +971 50 123 4567'
+                      error={Boolean(errors?.phone)}
+                      helperText={errors?.phone?.message}
                       slotProps={{
                         input: {
                           sx: { borderRadius: '8px' }
@@ -371,11 +368,14 @@ const ClientFormDialog = ({
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <TextField
+                      required
                       value={value ?? ''}
                       label='Email Address'
                       type='email'
                       onChange={onChange}
                       placeholder='e.g., client@company.com'
+                      error={Boolean(errors?.email)}
+                      helperText={errors?.email?.message}
                       slotProps={{
                         input: {
                           sx: { borderRadius: '8px' }
@@ -481,11 +481,7 @@ const ClientFormDialog = ({
                   name='status'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Switch
-                      checked={value ?? false}
-                      onChange={e => onChange(e.target.checked)}
-                      color='primary'
-                    />
+                    <Switch checked={value ?? false} onChange={e => onChange(e.target.checked)} color='primary' />
                   )}
                 />
               </Box>

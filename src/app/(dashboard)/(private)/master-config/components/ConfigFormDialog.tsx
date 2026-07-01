@@ -13,14 +13,7 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import Box from '@mui/material/Box'
-import {
-  CircularProgress,
-  FormHelperText,
-  Switch,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material'
+import { CircularProgress, FormHelperText, Switch, InputLabel, Select, MenuItem } from '@mui/material'
 import { boolean, object, pipe, string, optional, nonEmpty } from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
@@ -48,7 +41,6 @@ import {
 const schema = object({
   name: pipe(string(), nonEmpty('Name is required')),
   code: optional(string()),
-  key: optional(string()),
   description: optional(string()),
   b_id: optional(string()),
   dep_id: optional(string()),
@@ -59,7 +51,6 @@ const schema = object({
 const defaultValues = {
   name: '',
   code: '',
-  key: '',
   description: '',
   b_id: '',
   dep_id: '',
@@ -70,7 +61,14 @@ const defaultValues = {
 interface ConfigFormDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
-  type: 'cost-centers' | 'user-types' | 'owner-types' | 'facility-types' | 'asset-statuses' | 'departments' | 'designations'
+  type:
+    | 'cost-centers'
+    | 'user-types'
+    | 'owner-types'
+    | 'facility-types'
+    | 'asset-statuses'
+    | 'departments'
+    | 'designations'
   details?: any
   onDataChange: (data: any) => void
   businessesData?: any[]
@@ -85,8 +83,8 @@ const configActions: Record<string, { create: any; update: any }> = {
   'owner-types': { create: createOwnerType, update: updateOwnerType },
   'facility-types': { create: createFacilityType, update: updateFacilityType },
   'asset-statuses': { create: createAssetStatus, update: updateAssetStatus },
-  'departments': { create: createDepartment, update: updateDepartment },
-  'designations': { create: createDesignation, update: updateDesignation }
+  departments: { create: createDepartment, update: updateDepartment },
+  designations: { create: createDesignation, update: updateDesignation }
 }
 
 const ConfigFormDialog = ({
@@ -100,8 +98,6 @@ const ConfigFormDialog = ({
   clientsData = [],
   isSuperAdmin = false
 }: ConfigFormDialogProps) => {
-
-
   const {
     control,
     handleSubmit,
@@ -128,14 +124,18 @@ const ConfigFormDialog = ({
   useEffect(() => {
     if (!isSuperAdmin || !effectiveBId) {
       setLocalClients([])
+
       return
     }
 
     let active = true
+
     const fetchClients = async () => {
       setLoadingClients(true)
+
       try {
         const res = await getLookupClients({ b_id: effectiveBId })
+
         if (active) {
           setLocalClients(res?.data?.clients?.data || [])
         }
@@ -158,14 +158,18 @@ const ConfigFormDialog = ({
   useEffect(() => {
     if (!isSuperAdmin || !effectiveBId) {
       setLocalDepartments([])
+
       return
     }
 
     let active = true
+
     const fetchDepartments = async () => {
       setLoadingDepartments(true)
+
       try {
         const res = await getLookupDepartments({ b_id: effectiveBId })
+
         if (active) {
           setLocalDepartments(res?.data?.departments?.data || [])
         }
@@ -228,8 +232,6 @@ const ConfigFormDialog = ({
     }
   }
 
-
-
   const onSubmit = async (params: any) => {
     // Custom check for required fields based on config type
     if (type === 'cost-centers' && !params.code) {
@@ -238,8 +240,12 @@ const ConfigFormDialog = ({
       return
     }
 
-    if (['user-types', 'facility-types', 'asset-statuses'].includes(type) && !params.key) {
-      setError('key', { message: 'Key is required' })
+
+
+    if (type === 'designations' && !params.dep_id) {
+      setError('dep_id', {
+        message: 'Department is required'
+      })
 
       return
     }
@@ -327,7 +333,6 @@ const ConfigFormDialog = ({
           </IconButton>
 
           <Grid container spacing={5}>
-
             {/* Business Selection if Super Admin */}
             {isSuperAdmin && !details?.id && (
               <Grid size={12}>
@@ -382,11 +387,12 @@ const ConfigFormDialog = ({
                         <MenuItem value=''>
                           {loadingClients ? 'Loading clients...' : <em>None (Direct Business Department)</em>}
                         </MenuItem>
-                        {!loadingClients && filteredClients.map((client: any) => (
-                          <MenuItem key={client.id} value={client.id}>
-                            {client.name}
-                          </MenuItem>
-                        ))}
+                        {!loadingClients &&
+                          filteredClients.map((client: any) => (
+                            <MenuItem key={client.id} value={client.id}>
+                              {client.name}
+                            </MenuItem>
+                          ))}
                       </Select>
                     )}
                   />
@@ -413,14 +419,13 @@ const ConfigFormDialog = ({
                         sx={{ borderRadius: '8px' }}
                         disabled={loadingDepartments || (isSuperAdmin && !effectiveBId)}
                       >
-                        <MenuItem value=''>
-                          {loadingDepartments ? 'Loading departments...' : <em>None</em>}
-                        </MenuItem>
-                        {!loadingDepartments && filteredDepartments.map((dept: any) => (
-                          <MenuItem key={dept.id} value={dept.id}>
-                            {dept.name}
-                          </MenuItem>
-                        ))}
+                        <MenuItem value=''>{loadingDepartments ? 'Loading departments...' : <em>None</em>}</MenuItem>
+                        {!loadingDepartments &&
+                          filteredDepartments.map((dept: any) => (
+                            <MenuItem key={dept.id} value={dept.id}>
+                              {dept.name}
+                            </MenuItem>
+                          ))}
                       </Select>
                     )}
                   />
@@ -458,33 +463,7 @@ const ConfigFormDialog = ({
               </Grid>
             )}
 
-            {/* Key field for User Type, Facility Type, Asset Status */}
-            {['user-types', 'facility-types', 'asset-statuses'].includes(type) && (
-              <Grid size={12}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='key'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <TextField
-                        value={value ?? ''}
-                        label='Key'
-                        onChange={onChange}
-                        placeholder='e.g., active_status'
-                        error={Boolean(errors?.key)}
-                        disabled={!!details?.id && type === 'asset-statuses'} // Key is read-only for asset status updates in backend
-                        slotProps={{
-                          input: {
-                            sx: { borderRadius: '8px' }
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                  {errors?.key && <FormHelperText sx={{ color: 'error.main' }}>{errors?.key?.message}</FormHelperText>}
-                </FormControl>
-              </Grid>
-            )}
+
 
             {/* Name field */}
             <Grid size={12}>
@@ -555,11 +534,7 @@ const ConfigFormDialog = ({
                   name='status'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Switch
-                      checked={value ?? false}
-                      onChange={e => onChange(e.target.checked)}
-                      color='primary'
-                    />
+                    <Switch checked={value ?? false} onChange={e => onChange(e.target.checked)} color='primary' />
                   )}
                 />
               </Box>
@@ -598,4 +573,3 @@ const ConfigFormDialog = ({
 }
 
 export default ConfigFormDialog
-

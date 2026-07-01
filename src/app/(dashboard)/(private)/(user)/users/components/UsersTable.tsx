@@ -10,7 +10,24 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { IconButton, Chip, Switch, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tooltip, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import {
+  IconButton,
+  Chip,
+  Switch,
+  Tabs,
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Tooltip,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
@@ -44,6 +61,7 @@ interface UsersTableProps {
   businessesData?: any[]
   departmentsData?: any[]
   designationsData?: any[]
+  userTypesData?: any[]
 }
 
 const UsersTable = ({
@@ -55,7 +73,8 @@ const UsersTable = ({
   rolesData = [],
   businessesData = [],
   departmentsData = [],
-  designationsData = []
+  designationsData = [],
+  userTypesData = []
 }: UsersTableProps) => {
   const { data: session } = useSession()
   const isSuperAdmin = session?.user?.is_super_admin
@@ -102,45 +121,51 @@ const UsersTable = ({
     setData(initialData)
   }, [initialData])
 
-  const handleRoleChange = useCallback((roleId: string) => {
-    let newUrl = ''
+  const handleRoleChange = useCallback(
+    (roleId: string) => {
+      let newUrl = ''
 
-    if (roleId) {
-      newUrl = formUrlQuery({
-        params: searchParams.toString(),
-        key: 'role_id',
-        value: roleId,
-        keysToRemove: ['page']
-      })
-    } else {
-      newUrl = removeKeysFromQuery({
-        params: searchParams.toString(),
-        keysToRemove: ['role_id', 'page']
-      })
-    }
+      if (roleId) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'role_id',
+          value: roleId,
+          keysToRemove: ['page']
+        })
+      } else {
+        newUrl = removeKeysFromQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['role_id', 'page']
+        })
+      }
 
-    router.push(newUrl, { scroll: false })
-  }, [searchParams, router])
+      router.push(newUrl, { scroll: false })
+    },
+    [searchParams, router]
+  )
 
-  const handleBusinessChange = useCallback((bId: string) => {
-    let newUrl = ''
+  const handleBusinessChange = useCallback(
+    (bId: string) => {
+      let newUrl = ''
 
-    if (bId) {
-      newUrl = formUrlQuery({
-        params: searchParams.toString(),
-        key: 'b_id',
-        value: bId,
-        keysToRemove: ['page', 'role_id']
-      })
-    } else {
-      newUrl = removeKeysFromQuery({
-        params: searchParams.toString(),
-        keysToRemove: ['b_id', 'page', 'role_id']
-      })
-    }
+      if (bId) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'b_id',
+          value: bId,
+          keysToRemove: ['page', 'role_id']
+        })
+      } else {
+        newUrl = removeKeysFromQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['b_id', 'page', 'role_id']
+        })
+      }
 
-    router.push(newUrl, { scroll: false })
-  }, [searchParams, router])
+      router.push(newUrl, { scroll: false })
+    },
+    [searchParams, router]
+  )
 
   const onDeleteUser = useCallback(async (userId: string) => {
     try {
@@ -256,8 +281,8 @@ const UsersTable = ({
   const handleRejectConfirm = async () => {
     if (!rejectionReason.trim()) {
       toast.error('Rejection reason is required.')
-      
-return
+
+      return
     }
 
     setIsSubmittingAction(true)
@@ -281,24 +306,25 @@ return
     }
   }
 
-  const getApproverDetail = useCallback((step: any) => {
-    if (!step) return 'N/A'
-    if (step.approver_type === 'manager') return 'Manager (Direct Supervisor)'
+  const getApproverDetail = useCallback(
+    (step: any) => {
+      if (!step) return 'N/A'
+      if (step.approver_type === 'manager') return 'Manager (Direct Supervisor)'
 
-    if (step.approver_type === 'role') {
-      const foundRole = rolesData.find((r: any) => r.id === step.approver_id)
+      if (step.approver_type === 'role') {
+        const foundRole = rolesData.find((r: any) => r.id === step.approver_id)
 
-      
-return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
-    }
+        return foundRole ? `Role: ${foundRole.name}` : `Role: ${step.approver_id}`
+      }
 
-    if (step.approver_type === 'user') {
-      return `User: ${step.approver_id}`
-    }
+      if (step.approver_type === 'user') {
+        return `User: ${step.approver_id}`
+      }
 
-    
-return 'N/A'
-  }, [rolesData])
+      return 'N/A'
+    },
+    [rolesData]
+  )
 
   const columns = useMemo(
     () => [
@@ -389,7 +415,12 @@ return 'N/A'
             </RoleGuard>
 
             <RoleGuard allowedPermissions={[PERMISSIONS.USER_EDIT]}>
-              <IconButton size='small' onClick={() => onResetPasswordClick(row?.original)} color='info' title='Reset Password'>
+              <IconButton
+                size='small'
+                onClick={() => onResetPasswordClick(row?.original)}
+                color='info'
+                title='Reset Password'
+              >
                 <i className='ri-key-2-line text-textSecondary' />
               </IconButton>
             </RoleGuard>
@@ -425,8 +456,7 @@ return 'N/A'
           const depId = row?.original?.dep_id
           const department = departmentsData.find((d: any) => d.id === depId)
 
-          
-return <Typography className='text-xs'>{department?.name || 'N/A'}</Typography>
+          return <Typography className='text-xs'>{department?.name || 'N/A'}</Typography>
         }
       }),
       columnHelper.accessor('des_id', {
@@ -435,8 +465,7 @@ return <Typography className='text-xs'>{department?.name || 'N/A'}</Typography>
           const desId = row?.original?.des_id
           const designation = designationsData.find((d: any) => d.id === desId)
 
-          
-return <Typography className='text-xs'>{designation?.name || 'N/A'}</Typography>
+          return <Typography className='text-xs'>{designation?.name || 'N/A'}</Typography>
         }
       }),
       columnHelper.accessor('workflow_stage', {
@@ -446,14 +475,7 @@ return <Typography className='text-xs'>{designation?.name || 'N/A'}</Typography>
           const currentStepNum = row?.original?.current_approval_step || 1
 
           if (steps.length === 0) {
-            return (
-              <Chip
-                variant='tonal'
-                label='Direct Admin Approval'
-                size='small'
-                color='primary'
-              />
-            )
+            return <Chip variant='tonal' label='Direct Admin Approval' size='small' color='primary' />
           }
 
           const currentStep = steps[currentStepNum - 1]
@@ -462,8 +484,7 @@ return <Typography className='text-xs'>{designation?.name || 'N/A'}</Typography>
 
           const approverLabel = getApproverDetail(currentStep)
 
-          
-return (
+          return (
             <div className='flex flex-col gap-1'>
               <Typography className='text-xs font-semibold'>
                 Step {currentStepNum} of {steps.length}
@@ -480,7 +501,7 @@ return (
         cell: ({ row }) => {
           const steps = row?.original?.approval_steps || []
           const currentStepNum = row?.original?.current_approval_step || 1
-          
+
           let isAuthorized = false
           let awaitingApproverLabel = ''
 
@@ -513,7 +534,7 @@ return (
             <div className='flex items-center gap-1'>
               {isAuthorized ? (
                 <>
-                  <Tooltip title="Approve Registration">
+                  <Tooltip title='Approve Registration'>
                     <IconButton
                       size='small'
                       onClick={() => {
@@ -526,7 +547,7 @@ return (
                       <i className='ri-checkbox-circle-line text-success' />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Reject Registration">
+                  <Tooltip title='Reject Registration'>
                     <IconButton
                       size='small'
                       onClick={() => {
@@ -569,8 +590,8 @@ return (
           value={activeTab}
           onChange={(_, val) => setActiveTab(val)}
           sx={{ mb: 4 }}
-          indicatorColor="primary"
-          textColor="primary"
+          indicatorColor='primary'
+          textColor='primary'
         >
           <Tab value='all' label='All Users' />
           <Tab value='pending' label='Pending Approvals' />
@@ -582,7 +603,7 @@ return (
           <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
             <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
               <LocalSearchbar route={'/users'} placeholder='Search' className='max-sm:is-full sm:min-is-[220px]' />
-              
+
               {isSuperAdmin && (
                 <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }}>
                   <InputLabel id='business-filter-select-label'>Business</InputLabel>
@@ -640,6 +661,7 @@ return (
                     businesses: businessesData,
                     departments: departmentsData,
                     designations: designationsData,
+                    userTypes: userTypesData,
                     currentBId: currentBId
                   }}
                 />
@@ -659,8 +681,12 @@ return (
         <Card>
           <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
             <div className='flex items-center gap-4 flex-wrap max-sm:flex-col max-sm:is-full'>
-              <LocalSearchbar route={'/users'} placeholder='Search Pending' className='max-sm:is-full sm:min-is-[220px]' />
-              
+              <LocalSearchbar
+                route={'/users'}
+                placeholder='Search Pending'
+                className='max-sm:is-full sm:min-is-[220px]'
+              />
+
               {isSuperAdmin && (
                 <FormControl size='small' className='max-sm:is-full' sx={{ minWidth: 180 }}>
                   <InputLabel id='business-filter-select-label'>Business</InputLabel>
@@ -703,8 +729,9 @@ return (
         departments={departmentsData}
         designations={designationsData}
         currentBId={currentBId}
+        userTypes={userTypesData}
       />
-      
+
       <UpdatePasswordDialog
         open={passwordResetOpen}
         setOpen={setPasswordResetOpen}
@@ -717,8 +744,8 @@ return (
         <DialogTitle>Approve Account Registration</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to approve the account registration for <strong>{approveUserName}</strong>?
-            This will activate their account and enable their login credentials.
+            Are you sure you want to approve the account registration for <strong>{approveUserName}</strong>? This will
+            activate their account and enable their login credentials.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -746,7 +773,7 @@ return (
             size='small'
             label='Rejection Reason'
             value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
+            onChange={e => setRejectionReason(e.target.value)}
             disabled={isSubmittingAction}
             error={rejectConfirmOpen && !rejectionReason.trim()}
             helperText={rejectConfirmOpen && !rejectionReason.trim() ? 'Reason is required' : ''}

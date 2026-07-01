@@ -15,7 +15,19 @@ import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import Box from '@mui/material/Box'
 import { CircularProgress, FormHelperText, InputAdornment, InputLabel, MenuItem, Select, Switch } from '@mui/material'
-import { nonEmpty, object, pipe, string, minLength, email, forward, partialCheck, boolean, optional } from 'valibot'
+import {
+  nonEmpty,
+  object,
+  pipe,
+  string,
+  minLength,
+  email,
+  forward,
+  partialCheck,
+  boolean,
+  optional,
+  regex
+} from 'valibot'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { toast } from 'react-toastify'
@@ -27,9 +39,19 @@ const getSchema = (isEdit = false, isSuperAdmin = false) => {
   const baseSchema: any = {
     name: pipe(string(), nonEmpty('Please enter name')),
     email: pipe(string(), email('Please enter a valid email address')),
+    password: pipe(
+      string(),
+      nonEmpty('Please enter password'),
+      minLength(8, 'Password must be at least 8 characters long'),
+      regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/,
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      )
+    ),
     role_id: pipe(string(), nonEmpty('Please select role')),
     dep_id: optional(string()),
     des_id: optional(string()),
+    user_type_id: pipe(string(), nonEmpty('Please select user type')),
     is_admin: boolean()
   }
 
@@ -41,7 +63,11 @@ const getSchema = (isEdit = false, isSuperAdmin = false) => {
     baseSchema.password = pipe(
       string(),
       nonEmpty('Please enter password'),
-      minLength(6, 'Password must be at least 6 characters long')
+      minLength(8, 'Password must be at least 8 characters long'),
+      regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/,
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      )
     )
 
     baseSchema.confirm_password = pipe(string(), nonEmpty('Please confirm your password'))
@@ -68,6 +94,7 @@ const defaultValues = {
   role_id: '',
   dep_id: '',
   des_id: '',
+  user_type_id: '',
   password: '',
   confirm_password: '',
   is_admin: false,
@@ -83,6 +110,7 @@ interface UsersFormDialogProps {
   businesses?: any[]
   departments?: any[]
   designations?: any[]
+  userTypes?: any[]
   currentBId?: string
 }
 
@@ -95,6 +123,7 @@ const UsersFormDialog = ({
   businesses = [],
   departments = [],
   designations = [],
+  userTypes = [],
   currentBId = ''
 }: UsersFormDialogProps) => {
   const { data: session } = useSession()
@@ -131,6 +160,7 @@ const UsersFormDialog = ({
         role_id: details.role_id || '',
         dep_id: details.dep_id || '',
         des_id: details.des_id || '',
+        user_type_id: details.user_type_id || '',
         password: '',
         confirm_password: '',
         is_admin: details.is_admin || false,
@@ -139,7 +169,8 @@ const UsersFormDialog = ({
     } else {
       reset({
         ...defaultValues,
-        b_id: currentBId || ''
+        b_id: currentBId || '',
+        user_type_id: ''
       })
     }
   }, [details, reset, open, currentBId])
@@ -164,8 +195,7 @@ const UsersFormDialog = ({
       return []
     }
 
-    
-return roles
+    return roles
   }, [roles, selectedBId, isSuperAdmin])
 
   const filteredDepartments = useMemo(() => {
@@ -177,8 +207,7 @@ return roles
       return []
     }
 
-    
-return departments
+    return departments
   }, [departments, selectedBId, isSuperAdmin])
 
   const selectedDepId = watch('dep_id')
@@ -212,9 +241,20 @@ return departments
       list = list.filter(des => !des.dep_id)
     }
 
-    
-return list
+    return list
   }, [designations, selectedBId, selectedDepId, isSuperAdmin])
+
+  const filteredUserTypes = useMemo(() => {
+    if (selectedBId) {
+      return userTypes.filter(type => type.b_id === selectedBId)
+    }
+
+    if (isSuperAdmin && !selectedBId) {
+      return []
+    }
+
+    return userTypes
+  }, [userTypes, selectedBId, isSuperAdmin])
 
   const onSubmit = async (params: any) => {
     try {
@@ -282,9 +322,7 @@ return list
       }}
     >
       <DialogTitle variant='h4' className='flex gap-1 flex-col text-center pt-8 pb-4 px-6 sm:px-16'>
-        <span className='font-bold text-textPrimary'>
-          {details?.id ? 'Update' : 'New'} User Account
-        </span>
+        <span className='font-bold text-textPrimary'>{details?.id ? 'Update' : 'New'} User Account</span>
         <Typography variant='body2' className='text-textSecondary'>
           {details?.id
             ? 'Modify operational and security credentials for this user account'
@@ -302,7 +340,6 @@ return list
           </IconButton>
 
           <Grid container spacing={5}>
-
             {/* Name */}
             <Grid size={12}>
               <FormControl fullWidth>
@@ -395,12 +432,7 @@ return list
                   name='role_id'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Select
-                      value={value}
-                      onChange={onChange}
-                      label='Role'
-                      sx={{ borderRadius: '8px' }}
-                    >
+                    <Select value={value} onChange={onChange} label='Role' sx={{ borderRadius: '8px' }}>
                       {filteredRoles?.map(role => (
                         <MenuItem key={role?.id} value={role?.id}>
                           {role?.name}
@@ -421,12 +453,7 @@ return list
                   name='dep_id'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Select
-                      value={value ?? ''}
-                      onChange={onChange}
-                      label='Department'
-                      sx={{ borderRadius: '8px' }}
-                    >
+                    <Select value={value ?? ''} onChange={onChange} label='Department' sx={{ borderRadius: '8px' }}>
                       <MenuItem value=''>
                         <em>None</em>
                       </MenuItem>
@@ -450,12 +477,7 @@ return list
                   name='des_id'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Select
-                      value={value ?? ''}
-                      onChange={onChange}
-                      label='Designation'
-                      sx={{ borderRadius: '8px' }}
-                    >
+                    <Select value={value ?? ''} onChange={onChange} label='Designation' sx={{ borderRadius: '8px' }}>
                       <MenuItem value=''>
                         <em>None</em>
                       </MenuItem>
@@ -468,6 +490,29 @@ return list
                   )}
                 />
                 {errors?.des_id && <FormHelperText>{errors?.des_id?.message}</FormHelperText>}
+              </FormControl>
+            </Grid>
+            {/* user type selection */}
+            <Grid size={12}>
+              <FormControl fullWidth error={Boolean(errors?.user_type_id)}>
+                <InputLabel>User Type</InputLabel>
+                <Controller
+                  name='user_type_id'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Select value={value ?? ''} onChange={onChange} label='User Type' sx={{ borderRadius: '8px' }}>
+                      <MenuItem value=''>
+                        <em>None</em>
+                      </MenuItem>
+                      {filteredUserTypes?.map(userType => (
+                        <MenuItem key={userType?.id} value={userType?.id}>
+                          {userType?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.user_type_id && <FormHelperText>{errors?.user_type_id?.message}</FormHelperText>}
               </FormControl>
             </Grid>
 
@@ -484,16 +529,11 @@ return list
                   name='is_admin'
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <Switch
-                      checked={value}
-                      onChange={e => onChange(e.target.checked)}
-                      color='primary'
-                    />
+                    <Switch checked={value} onChange={e => onChange(e.target.checked)} color='primary' />
                   )}
                 />
               </Box>
             </Grid>
-
             {/* Password fields (new user only) */}
             {!details?.id && (
               <>

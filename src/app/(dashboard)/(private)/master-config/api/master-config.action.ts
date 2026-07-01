@@ -22,7 +22,6 @@ function formatUserType(item: any) {
 
   return {
     id: item._id,
-    key: item.key,
     name: item.name,
     description: item.desc || '',
     status: item.is_active,
@@ -48,7 +47,6 @@ function formatFacilityType(item: any) {
 
   return {
     id: item._id,
-    key: item.key,
     name: item.name,
     description: item.desc || '',
     status: item.is_active,
@@ -63,7 +61,6 @@ function formatAssetStatus(item: any) {
   return {
     id: item._id,
     b_id: item.b_id?._id || item.b_id,
-    key: item.key,
     name: item.name,
     description: item.desc || '',
     status: item.is_active,
@@ -243,7 +240,6 @@ export async function getAllUserTypes(variables: any) {
 export async function createUserType(variables: any, path?: string) {
   const body = {
     b_id: variables?.configData?.b_id,
-    key: variables?.configData?.key,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
@@ -267,7 +263,6 @@ export async function updateUserType(variables: any, path?: string) {
   const b_id = variables?.configData?.b_id
 
   const body = {
-    key: variables?.configData?.key,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
@@ -483,7 +478,6 @@ export async function getAllFacilityTypes(variables: any) {
 export async function createFacilityType(variables: any, path?: string) {
   const body = {
     b_id: variables?.configData?.b_id,
-    key: variables?.configData?.key,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
@@ -507,7 +501,6 @@ export async function updateFacilityType(variables: any, path?: string) {
   const b_id = variables?.configData?.b_id
 
   const body = {
-    key: variables?.configData?.key,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
@@ -605,7 +598,6 @@ export async function getAllAssetStatuses(variables: any) {
 export async function createAssetStatus(variables: any, path?: string) {
   const body = {
     b_id: variables?.configData?.b_id,
-    key: variables?.configData?.key,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true
@@ -628,7 +620,6 @@ export async function updateAssetStatus(variables: any, path?: string) {
   const id = variables?.configData?.id
 
   const body = {
-    key: variables?.configData?.key,
     name: variables?.configData?.name,
     desc: variables?.configData?.description,
     is_active: variables?.configData?.status !== undefined ? variables.configData.status : true

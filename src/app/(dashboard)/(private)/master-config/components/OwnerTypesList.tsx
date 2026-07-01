@@ -156,7 +156,9 @@ const OwnerTypesList = ({
 
           return (
             <div className='flex items-center gap-3'>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none ${colorClass}`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none ${colorClass}`}
+              >
                 {firstLetter}
               </div>
               <Typography color='text.primary' className='font-semibold text-[13px]'>
@@ -198,7 +200,11 @@ const OwnerTypesList = ({
             }
           }
 
-          return <Typography color='text.secondary' className='text-xs'>{formattedDate}</Typography>
+          return (
+            <Typography color='text.secondary' className='text-xs'>
+              {formattedDate}
+            </Typography>
+          )
         }
       }),
       columnHelper.accessor('action', {
@@ -242,9 +248,7 @@ const OwnerTypesList = ({
                   label='Business Context'
                   onChange={e => handleBusinessChange(e.target.value as string)}
                 >
-                  <MenuItem value=''>
-                    All Businesses
-                  </MenuItem>
+                  <MenuItem value=''>All Businesses</MenuItem>
                   {businessesData.map((business: any) => (
                     <MenuItem key={business.id} value={business.id}>
                       {business.name}
