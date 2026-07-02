@@ -10,10 +10,25 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { IconButton, Chip, FormControl, InputLabel, Select, MenuItem, Box, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material'
+import {
+  IconButton,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
+} from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
+import ClientDateTime from '@components/common/ClientDateTime'
 import LocalSearchbar from '@components/common/LocalSearchbar'
 import DataTable from '@components/data-table/DataTable'
 import RoleGuard from '@components/RoleGuard'
@@ -81,90 +96,114 @@ const ComplaintsTable = ({
     setData(initialData)
   }, [initialData])
 
-  const handleBusinessChange = useCallback((bId: string) => {
-    let newUrl = ''
-    if (bId) {
-      newUrl = formUrlQuery({
-        params: searchParams.toString(),
-        key: 'b_id',
-        value: bId,
-        keysToRemove: ['page']
-      })
-    } else {
-      newUrl = removeKeysFromQuery({
-        params: searchParams.toString(),
-        keysToRemove: ['b_id', 'page']
-      })
-    }
-    router.push(newUrl, { scroll: false })
-  }, [searchParams, router])
+  const handleBusinessChange = useCallback(
+    (bId: string) => {
+      let newUrl = ''
 
-  const handleStatusChange = useCallback((status: string) => {
-    let newUrl = ''
-    if (status) {
-      newUrl = formUrlQuery({
-        params: searchParams.toString(),
-        key: 'status',
-        value: status,
-        keysToRemove: ['page']
-      })
-    } else {
-      newUrl = removeKeysFromQuery({
-        params: searchParams.toString(),
-        keysToRemove: ['status', 'page']
-      })
-    }
-    router.push(newUrl, { scroll: false })
-  }, [searchParams, router])
-
-  const handleFacilityChange = useCallback((fId: string) => {
-    let newUrl = ''
-    if (fId) {
-      newUrl = formUrlQuery({
-        params: searchParams.toString(),
-        key: 'facility_id',
-        value: fId,
-        keysToRemove: ['page']
-      })
-    } else {
-      newUrl = removeKeysFromQuery({
-        params: searchParams.toString(),
-        keysToRemove: ['facility_id', 'page']
-      })
-    }
-    router.push(newUrl, { scroll: false })
-  }, [searchParams, router])
-
-  const onDeleteComplaint = useCallback(async (id: string) => {
-    if (!confirm('Are you sure you want to delete this Complaint?')) return
-
-    try {
-      const { data: responseData, errors } = await deleteComplaint(id, pathname)
-      if (responseData?.deleteComplaint) {
-        toast.success('Complaint deleted successfully!')
-        setData(prev => prev.filter(c => c?.id !== id))
+      if (bId) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'b_id',
+          value: bId,
+          keysToRemove: ['page']
+        })
+      } else {
+        newUrl = removeKeysFromQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['b_id', 'page']
+        })
       }
-      validateError(errors)
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to delete the complaint.')
-    }
-  }, [pathname])
+
+      router.push(newUrl, { scroll: false })
+    },
+    [searchParams, router]
+  )
+
+  const handleStatusChange = useCallback(
+    (status: string) => {
+      let newUrl = ''
+
+      if (status) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'status',
+          value: status,
+          keysToRemove: ['page']
+        })
+      } else {
+        newUrl = removeKeysFromQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['status', 'page']
+        })
+      }
+
+      router.push(newUrl, { scroll: false })
+    },
+    [searchParams, router]
+  )
+
+  const handleFacilityChange = useCallback(
+    (fId: string) => {
+      let newUrl = ''
+
+      if (fId) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'facility_id',
+          value: fId,
+          keysToRemove: ['page']
+        })
+      } else {
+        newUrl = removeKeysFromQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['facility_id', 'page']
+        })
+      }
+
+      router.push(newUrl, { scroll: false })
+    },
+    [searchParams, router]
+  )
+
+  const onDeleteComplaint = useCallback(
+    async (id: string) => {
+      if (!confirm('Are you sure you want to delete this Complaint?')) return
+
+      try {
+        const { data: responseData, errors } = await deleteComplaint(id, pathname)
+
+        if (responseData?.deleteComplaint) {
+          toast.success('Complaint deleted successfully!')
+          setData(prev => prev.filter(c => c?.id !== id))
+        }
+
+        validateError(errors)
+      } catch (error: any) {
+        toast.error(error?.message || 'Failed to delete the complaint.')
+      }
+    },
+    [pathname]
+  )
 
   const onCancelSubmit = async () => {
     if (!cancelRemarks.trim()) {
       toast.error('Cancellation remarks are required')
+
       return
     }
 
     setIsSubmittingCancel(true)
+
     try {
       const { data: responseData, errors } = await cancelComplaint(cancelId, cancelRemarks, pathname)
+
       if (responseData?.cancelComplaint) {
         toast.success('Complaint cancelled successfully!')
         addOrUpdateItem(setData, responseData.cancelComplaint, 'id')
         setCancelOpen(false)
         setCancelRemarks('')
       }
+
       validateError(errors)
     } catch (error: any) {
       toast.error(error?.message || 'Failed to cancel the complaint.')
@@ -173,109 +212,135 @@ const ComplaintsTable = ({
     }
   }
 
-  const columns = useMemo(() => [
-    columnHelper.accessor('title', {
-      header: 'Complaint Details',
-      cell: ({ row }) => (
-        <Box className='flex flex-col gap-1 py-1'>
-          <Typography className='font-semibold text-sm cursor-pointer hover:underline text-primary' onClick={() => {
-            setSelectedItem(row.original)
-            setOpenDetailDialog(true)
-          }}>
-            {row.original.title}
-          </Typography>
-          <Typography variant='caption' color='textSecondary' className='line-clamp-1'>
-            {row.original.description}
-          </Typography>
-        </Box>
-      )
-    }),
-    columnHelper.accessor('facility_name', {
-      header: 'Facility',
-      cell: ({ row }) => (
-        <Typography variant='body2'>
-          {row.original.facility_name || 'N/A'}
-        </Typography>
-      )
-    }),
-    columnHelper.accessor('reporter', {
-      header: 'Raised By',
-      cell: ({ row }) => (
-        <Typography variant='body2'>
-          {row.original.reporter || 'System'}
-        </Typography>
-      )
-    }),
-    columnHelper.accessor('status', {
-      header: 'Status',
-      cell: ({ row }) => {
-        const status = row.original.status
-        let color: 'primary' | 'success' | 'secondary' = 'primary'
-        if (status === 'converted_to_sr') color = 'success'
-        if (status === 'cancelled') color = 'secondary'
-
-        const statusLabels = {
-          raised: 'Raised',
-          converted_to_sr: 'Converted to SR',
-          cancelled: 'Cancelled'
-        }
-
-        return <Chip label={statusLabels[status as keyof typeof statusLabels] || status} color={color} size='small' variant='tonal' />
-      }
-    }),
-    columnHelper.accessor('created_at', {
-      header: 'Created Date',
-      cell: ({ row }) => (
-        <Typography variant='body2'>
-          {new Date(row.original.created_at).toLocaleDateString()}
-        </Typography>
-      )
-    }),
-    columnHelper.accessor('actions', {
-      header: 'Actions',
-      cell: ({ row }) => {
-        const canEdit = row.original.status === 'raised' && hasAccess(PERMISSIONS.COMPLAINT_EDIT)
-        const canDelete = hasAccess(PERMISSIONS.COMPLAINT_DELETE)
-        const canConvert = row.original.status === 'raised' && hasAccess(PERMISSIONS.SERVICE_REQUEST_CREATE)
-
-        return (
-          <Box className='flex items-center gap-1'>
-            {canConvert && (
-              <IconButton size='small' color='primary' title='Convert to Service Request' onClick={() => {
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('title', {
+        header: 'Complaint Details',
+        cell: ({ row }) => (
+          <Box className='flex flex-col gap-1 py-1'>
+            <Typography
+              className='font-semibold text-sm cursor-pointer hover:underline text-primary'
+              onClick={() => {
                 setSelectedItem(row.original)
-                setOpenConvertDialog(true)
-              }}>
-                <i className='ri-arrow-right-up-line text-lg' />
-              </IconButton>
-            )}
-            {canEdit && (
-              <IconButton size='small' color='info' title='Edit Complaint' onClick={() => {
-                setSelectedItem(row.original)
-                setOpenFormDialog(true)
-              }}>
-                <i className='ri-edit-box-line text-lg' />
-              </IconButton>
-            )}
-            {row.original.status === 'raised' && (
-              <IconButton size='small' color='warning' title='Cancel Complaint' onClick={() => {
-                setCancelId(row.original.id)
-                setCancelOpen(true)
-              }}>
-                <i className='ri-close-circle-line text-lg' />
-              </IconButton>
-            )}
-            {canDelete && (
-              <IconButton size='small' color='error' title='Delete Complaint' onClick={() => {
-                onDeleteComplaint(row.original.id)
-              }}>
-                <i className='ri-delete-bin-line text-lg' />
-              </IconButton>
-            )}
+                setOpenDetailDialog(true)
+              }}
+            >
+              {row.original.title}
+            </Typography>
+            <Typography variant='caption' color='textSecondary' className='line-clamp-1'>
+              {row.original.description}
+            </Typography>
           </Box>
         )
-      }
-    })
-  ], [onDeleteComplaint, hasAccess])
+      }),
+      columnHelper.accessor('facility_name', {
+        header: 'Facility',
+        cell: ({ row }) => <Typography variant='body2'>{row.original.facility_name || 'N/A'}</Typography>
+      }),
+      columnHelper.accessor('reporter', {
+        header: 'Raised By',
+        cell: ({ row }) => <Typography variant='body2'>{row.original.reporter || 'System'}</Typography>
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.original.status
+          let color: 'primary' | 'success' | 'secondary' = 'primary'
+
+          if (status === 'converted_to_sr') color = 'success'
+          if (status === 'cancelled') color = 'secondary'
+
+          const statusLabels = {
+            raised: 'Raised',
+            converted_to_sr: 'Converted to SR',
+            cancelled: 'Cancelled'
+          }
+
+          return (
+            <Chip
+              label={statusLabels[status as keyof typeof statusLabels] || status}
+              color={color}
+              size='small'
+              variant='tonal'
+            />
+          )
+        }
+      }),
+      columnHelper.accessor('created_at', {
+        header: 'Created Date',
+        cell: ({ row }) => (
+          <Typography variant='body2'>
+            <ClientDateTime date={row.original.created_at} formatStr='toLocaleDateString' />
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('actions', {
+        header: 'Actions',
+        cell: ({ row }) => {
+          const canEdit = row.original.status === 'raised' && hasAccess(PERMISSIONS.COMPLAINT_EDIT)
+          const canDelete = hasAccess(PERMISSIONS.COMPLAINT_DELETE)
+          const canConvert = row.original.status === 'raised' && hasAccess(PERMISSIONS.SERVICE_REQUEST_CREATE)
+
+          return (
+            <Box className='flex items-center gap-1'>
+              {canConvert && (
+                <IconButton
+                  size='small'
+                  color='primary'
+                  title='Convert to Service Request'
+                  onClick={() => {
+                    setSelectedItem(row.original)
+                    setOpenConvertDialog(true)
+                  }}
+                >
+                  <i className='ri-arrow-right-up-line text-lg' />
+                </IconButton>
+              )}
+              {canEdit && (
+                <IconButton
+                  size='small'
+                  color='info'
+                  title='Edit Complaint'
+                  onClick={() => {
+                    setSelectedItem(row.original)
+                    setOpenFormDialog(true)
+                  }}
+                >
+                  <i className='ri-edit-box-line text-lg' />
+                </IconButton>
+              )}
+              {row.original.status === 'raised' && (
+                <IconButton
+                  size='small'
+                  color='warning'
+                  title='Cancel Complaint'
+                  onClick={() => {
+                    setCancelId(row.original.id)
+                    setCancelOpen(true)
+                  }}
+                >
+                  <i className='ri-close-circle-line text-lg' />
+                </IconButton>
+              )}
+              {canDelete && (
+                <IconButton
+                  size='small'
+                  color='error'
+                  title='Delete Complaint'
+                  onClick={() => {
+                    onDeleteComplaint(row.original.id)
+                  }}
+                >
+                  <i className='ri-delete-bin-line text-lg' />
+                </IconButton>
+              )}
+            </Box>
+          )
+        }
+      })
+    ],
+    [onDeleteComplaint, hasAccess]
+  )
 
   return (
     <>
@@ -305,7 +370,9 @@ const ComplaintsTable = ({
                   <Select value={currentBId} label='Business' onChange={e => handleBusinessChange(e.target.value)}>
                     <MenuItem value=''>All Businesses</MenuItem>
                     {businessesData.map((b: any) => (
-                      <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+                      <MenuItem key={b.id} value={b.id}>
+                        {b.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -328,7 +395,9 @@ const ComplaintsTable = ({
                 <Select value={currentFacilityId} label='Facility' onChange={e => handleFacilityChange(e.target.value)}>
                   <MenuItem value=''>All Facilities</MenuItem>
                   {facilitiesData.map((f: any) => (
-                    <MenuItem key={f.id} value={f.id}>{f.name}</MenuItem>
+                    <MenuItem key={f.id} value={f.id}>
+                      {f.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -353,7 +422,7 @@ const ComplaintsTable = ({
         open={openFormDialog}
         setOpen={setOpenFormDialog}
         details={selectedItem}
-        onDataChange={(savedItem) => {
+        onDataChange={savedItem => {
           addOrUpdateItem(setData, savedItem, 'id')
         }}
         facilitiesData={facilitiesData}
@@ -361,11 +430,7 @@ const ComplaintsTable = ({
       />
 
       {/* Complaint Detail Dialog */}
-      <ComplaintDetailDialog
-        open={openDetailDialog}
-        setOpen={setOpenDetailDialog}
-        details={selectedItem}
-      />
+      <ComplaintDetailDialog open={openDetailDialog} setOpen={setOpenDetailDialog} details={selectedItem} />
 
       {/* Promote Complaint to Service Request Dialog */}
       {openConvertDialog && selectedItem && (
@@ -373,7 +438,7 @@ const ComplaintsTable = ({
           open={openConvertDialog}
           setOpen={setOpenConvertDialog}
           prefillComplaint={selectedItem}
-          onDataChange={(savedSr) => {
+          onDataChange={savedSr => {
             // Update complaint status to converted_to_sr locally
             addOrUpdateItem(setData, { ...selectedItem, status: 'converted_to_sr' }, 'id')
             toast.success(`Successfully converted complaint to SR ${savedSr.title}`)
@@ -398,7 +463,7 @@ const ComplaintsTable = ({
             multiline
             rows={3}
             value={cancelRemarks}
-            onChange={(e) => setCancelRemarks(e.target.value)}
+            onChange={e => setCancelRemarks(e.target.value)}
           />
         </DialogContent>
         <DialogActions>

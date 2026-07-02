@@ -176,8 +176,7 @@ const DataTableComponent = <T,>(
       element.table = table
     }
 
-    
-return element
+    return element
   })
 
   const resolvedPaginationShow = hidePagination ? false : paginationShow

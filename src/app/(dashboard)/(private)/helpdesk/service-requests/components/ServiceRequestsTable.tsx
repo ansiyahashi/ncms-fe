@@ -14,6 +14,7 @@ import { IconButton, Chip, FormControl, InputLabel, Select, MenuItem, Box, Grid,
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
+import ClientDateTime from '@components/common/ClientDateTime'
 import LocalSearchbar from '@components/common/LocalSearchbar'
 import DataTable from '@components/data-table/DataTable'
 import RoleGuard from '@components/RoleGuard'
@@ -297,7 +298,7 @@ const ServiceRequestsTable = ({
       header: 'Date Raised',
       cell: ({ row }) => (
         <Typography variant='body2'>
-          {new Date(row.original.created_at).toLocaleDateString()}
+          <ClientDateTime date={row.original.created_at} formatStr='toLocaleDateString' />
         </Typography>
       )
     }),

@@ -50,7 +50,7 @@ const ServiceRequestDetailDialog = ({ open, setOpen, details }: ServiceRequestDe
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth='md' fullWidth>
       <DialogTitle className='flex items-center justify-between'>
-        <Typography variant='h6'>Service Request Details</Typography>
+        <Typography variant='h6' component='span'>Service Request Details</Typography>
         <Box className='flex gap-2'>
           <Chip
             label={priorityLabels[details.priority as keyof typeof priorityLabels] || details.priority}

@@ -53,6 +53,7 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
 
   if (res?.errors || facilitiesRes?.errors || (isSuperAdmin && businessesRes?.errors)) {
     const error = res?.errors || facilitiesRes?.errors || businessesRes?.errors
+
     throw new Error(error?.message || 'Failed to fetch Complaints data.')
   }
 
